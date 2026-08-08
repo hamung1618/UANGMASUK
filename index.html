@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cek Uang Masuk — Laporan Harian</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0284c7">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Uang Masuk">
+  <link rel="icon" href="icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    :root, [data-theme="light"] {
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --muted: #64748b;
+      --accent: #0284c7;
+      --accent-soft: #e0f2fe;
+      --green: #16a34a;
+      --green-bg: #dcfce7;
+      --yellow: #ca8a04;
+      --yellow-bg: #fef9c3;
+      --red: #dc2626;
+      --red-bg: #fee2e2;
+      --indigo: #4f46e5;
+      --indigo-bg: #e0e7ff;
+      --header-bg: #ffffff;
+      --table-hover: #f8fafc;
+      --th-bg: #f8fafc;
+      --input-bg: #ffffff;
+      --shadow: 0 1px 3px rgba(0,0,0,.08);
+    }
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --border: #334155;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-soft: #0c4a6e;
+      --green: #4ade80;
+      --green-bg: #14532d;
+      --yellow: #facc15;
+      --yellow-bg: #713f12;
+      --red: #f87171;
+      --red-bg: #7f1d1d;
+      --indigo: #a5b4fc;
+      --indigo-bg: #312e81;
+      --header-bg: #1e293b;
+      --table-hover: #243047;
+      --th-bg: #0f172a;
+      --input-bg: #1e293b;
+      --shadow: 0 1px 3px rgba(0,0,0,.3);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.45;
+    }
+
+    .top-header {
+      background: var(--header-bg);
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .brand h1 { font-size: 1.05rem; font-weight: 700; white-space: nowrap; }
+    .brand .sub { font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .upload-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .upload-btn:hover { opacity: .9; }
+    .upload-btn input { display: none; }
+    .file-label {
+      font-size: 0.75rem;
+      color: var(--green);
+      max-width: 140px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .mini-cards { display: none; gap: 6px; flex-wrap: wrap; }
+    .mini-cards.show { display: flex; }
+    .mini {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 5px 10px;
+      text-align: center;
+      min-width: 68px;
+    }
+    .mini .l { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
+    .mini .v { font-size: 0.9rem; font-weight: 700; }
+
+    .theme-btn {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 10px;
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      color: var(--text);
+    }
+
+    .container { max-width: 1400px; margin: 0 auto; padding: 16px; }
+
+    .search-bar {
+      display: none;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .search-bar.show { display: flex; }
+    .search-bar input {
+      flex: 1;
+      min-width: 180px;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+    }
+    .search-bar input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .search-bar input::placeholder { color: var(--muted); }
+    .search-bar select {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 10px;
+      color: var(--text);
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 16px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .btn:hover { opacity: .9; }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+    .badge-lunas { background: var(--green-bg); color: var(--green); }
+    .badge-titip { background: var(--yellow-bg); color: var(--yellow); }
+    .badge-tf { background: var(--accent-soft); color: var(--accent); }
+    .badge-retur { background: var(--red-bg); color: var(--red); }
+    .badge-section { background: var(--indigo-bg); color: var(--indigo); font-size: 0.65rem; }
+
+    .result-info {
+      display: none;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    .result-info strong { color: var(--text); }
+
+    .table-wrap {
+      display: none;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    th {
+      background: var(--th-bg);
+      color: var(--muted);
+      text-align: left;
+      padding: 10px 8px;
+      font-weight: 600;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+      white-space: nowrap;
+      position: sticky;
+      top: 0;
+      border-bottom: 1px solid var(--border);
+    }
+    td { padding: 8px; border-top: 1px solid var(--border); vertical-align: top; }
+    tr:hover td { background: var(--table-hover); }
+    .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .faktur { font-family: ui-monospace, 'Cascadia Code', monospace; color: var(--accent); font-weight: 600; font-size: 0.8rem; }
+    .toko { font-weight: 600; }
+    .muted { color: var(--muted); }
+
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+    .empty-state .big { font-size: 2.8rem; margin-bottom: 10px; }
+    .empty-state .hint { font-size: 0.85rem; margin-top: 8px; max-width: 440px; margin-left: auto; margin-right: auto; }
+
+    .loading { display: none; text-align: center; padding: 40px; color: var(--accent); }
+
+    footer {
+      text-align: center;
+      margin-top: 28px;
+      padding-bottom: 20px;
+      color: var(--muted);
+      font-size: 0.75rem;
+    }
+
+    /* Daily summary */
+    .daily-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: none;
+    }
+    .daily-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+    .daily-scroll { overflow-x: auto; max-height: 280px; overflow-y: auto; }
+    .daily-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    .daily-table th {
+      background: var(--th-bg);
+      color: var(--muted);
+      text-align: left;
+      padding: 8px 10px;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      position: sticky;
+      top: 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .daily-table td {
+      padding: 7px 10px;
+      border-top: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .daily-table tr:hover td { background: var(--table-hover); }
+    .daily-table tr.active td { background: var(--accent-soft); }
+    .daily-table .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .daily-table .total-row td { font-weight: 700; border-top: 2px solid var(--border); background: var(--th-bg); cursor: default; }
+
+    /* Faktur history modal */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,.45);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 720px;
+      max-height: 85vh;
+      overflow: auto;
+      box-shadow: 0 20px 50px rgba(0,0,0,.2);
+    }
+    .modal-h {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+    }
+    .modal-h h2 { font-size: 1rem; font-weight: 700; }
+    .modal-h .sub { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+    .modal-close {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      cursor: pointer;
+      color: var(--text);
+      font-size: 0.85rem;
+    }
+    .modal-body { padding: 14px 16px; }
+    .modal-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .modal-stat {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+    }
+    .modal-stat .l { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; }
+    .modal-stat .v { font-size: 0.95rem; font-weight: 700; margin-top: 2px; }
+    .hist-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    .hist-table th {
+      background: var(--th-bg);
+      color: var(--muted);
+      text-align: left;
+      padding: 8px;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+    }
+    .hist-table td { padding: 8px; border-top: 1px solid var(--border); }
+    .faktur-link {
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .faktur-link:hover { opacity: .8; }
+
+    /* Dropdown menu */
+    .menu-wrap { position: relative; }
+    .menu-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .menu-btn:hover { opacity: .9; }
+    .menu-dd {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: calc(100% + 6px);
+      min-width: 220px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.12);
+      z-index: 100;
+      padding: 6px;
+    }
+    .menu-dd.open { display: block; }
+    .menu-item {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: none;
+      border-radius: 7px;
+      padding: 9px 12px;
+      font-size: 0.85rem;
+      color: var(--text);
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .menu-item:hover { background: var(--bg); }
+    .upload-item { cursor: pointer; font-weight: 600; color: var(--accent); }
+    .upload-item input { display: none; }
+    .menu-divider { height: 1px; background: var(--border); margin: 4px 0; }
+    .menu-files {
+      padding: 6px 12px;
+      font-size: 0.72rem;
+      color: var(--muted);
+      word-break: break-all;
+      max-height: 60px;
+      overflow-y: auto;
+    }
+    .cards-hint {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-left: 4px;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 700px) {
+      .brand h1 { font-size: 0.95rem; }
+      .brand .sub { display: none; }
+      .mini { min-width: 56px; padding: 4px 6px; }
+      .mini .v { font-size: 0.8rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div>
+          <h1>Cek Uang Masuk</h1>
+          <div class="sub">Laporan Uang Masuk Harian · Upload Excel</div>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="mini-cards" id="miniCards">
+          <div class="mini"><div class="l">Faktur</div><div class="v" id="sTotal">0</div></div>
+          <div class="mini"><div class="l">Piutang</div><div class="v" id="sPiutang">0</div></div>
+          <div class="mini"><div class="l">Dropping</div><div class="v" id="sDropping">0</div></div>
+          <div class="mini"><div class="l">Lunas</div><div class="v" id="sLunas" style="color:var(--green)">0</div></div>
+          <div class="mini"><div class="l">Titip</div><div class="v" id="sTitip" style="color:var(--yellow)">0</div></div>
+          <div class="mini"><div class="l">Hari</div><div class="v" id="sSheets">0</div></div>
+        </div>
+
+        <div class="menu-wrap" id="menuWrap">
+          <button class="menu-btn" id="menuBtn" onclick="toggleMenu()">☰ Menu ▾</button>
+          <div class="menu-dd" id="menuDd">
+            <label class="menu-item upload-item">
+              <input type="file" id="fileInput" accept=".xlsx,.xls" multiple="">
+              📂 Upload Excel
+            </label>
+            <button class="menu-item" id="clearBtn" onclick="clearData(); closeMenu();" style="display: none;">✕ Hapus data</button>
+            <div class="menu-divider"></div>
+            <div class="menu-files" id="fileName">Belum ada file diupload</div>
+            <div class="menu-divider"></div>
+            <button class="menu-item" onclick="toggleTheme(); closeMenu();">
+              <span id="themeLabel">☀️ Mode terang</span>
+            </button>
+            <button class="menu-item" id="installBtn" onclick="installApp(); closeMenu();" style="display:none;color:var(--accent);font-weight:700;">
+              📲 Install Aplikasi
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="search-bar" id="searchBar">
+      <input type="text" id="searchInput" placeholder="Cari No Faktur, toko, alamat, atau sales..." autocomplete="off">
+      <select id="filterMonth"><option value="all">Semua Bulan</option></select>
+      <select id="filterSection">
+        <option value="all">Semua Bagian</option>
+        <option value="PIUTANG TEMPO">Piutang Tempo</option>
+        <option value="CASH DROPPING">Cash Dropping</option>
+      </select>
+      <select id="filterStatus">
+        <option value="all">Semua Status</option>
+        <option value="LUNAS">Lunas</option>
+        <option value="TITIP">Titip</option>
+      </select>
+      <button class="btn" onclick="doSearch()">Cari</button>
+      <button class="btn btn-outline" onclick="resetSearch()">Reset</button>
+    </div>
+
+    <div class="daily-panel" id="dailyPanel">
+      <div class="daily-head">
+        <strong>📅 Ringkasan Harian</strong>
+        <span class="muted" id="dailyHint">Upload data untuk melihat ringkasan</span>
+      </div>
+      <div class="daily-scroll">
+        <table class="daily-table">
+          <thead>
+            <tr>
+              <th>Tanggal</th>
+              <th>Sheet</th>
+              <th class="num">Jml Faktur</th>
+              <th class="num">Piutang</th>
+              <th class="num">Dropping</th>
+              <th class="num">Tagihan</th>
+              <th class="num">Bayar Cash</th>
+              <th class="num">Bayar TF</th>
+              <th class="num">Total Bayar</th>
+            </tr>
+          </thead>
+          <tbody id="dailyBody">
+            <tr><td colspan="9" style="text-align:center;padding:30px;color:var(--muted);cursor:default;">
+              Belum ada data. Upload file Excel untuk mulai melihat ringkasan.
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="result-info" id="resultInfo" style="display: none;">Menampilkan <strong>0</strong> dari <strong>0</strong> faktur</div>
+
+    <div class="table-wrap" id="tableWrap" style="display: none;">
+      <table>
+        <thead>
+          <tr>
+            <th>Tanggal</th>
+            <th>Bagian</th>
+            <th>Sales</th>
+            <th>No Faktur</th>
+            <th>Nama Toko</th>
+            <th>Alamat</th>
+            <th>Tagihan</th>
+            <th>Minyak Cash</th>
+            <th>Minyak TF</th>
+            <th>Rupa Cash</th>
+            <th>Rupa TF</th>
+            <th>Bayar Terakhir</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="empty-state" id="emptyState">
+      <div class="big">📂</div>
+      <div><strong>Upload file Excel</strong> laporan uang masuk harian</div>
+      <div class="hint">
+        Upload satu atau beberapa file Excel (bisa pilih sekaligus).<br>
+        Format sheet harus sama (Piutang Tempo + Cash Dropping + No Faktur).<br>
+        Data diproses di browser Anda.
+      </div>
+      <br>
+      <label class="upload-btn" style="display:inline-flex;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:0.9rem;font-weight:600;cursor:pointer;">
+        📂 Pilih File Excel
+        <input type="file" id="fileInputMain" accept=".xlsx,.xls" multiple="">
+      </label>
+    </div>
+
+    <div class="loading" id="loading" style="display: none;">Memproses file...</div>
+
+    <!-- Modal riwayat faktur -->
+    <div class="modal-backdrop" id="fakturModal" onclick="if(event.target===this)closeFakturModal()">
+      <div class="modal">
+        <div class="modal-h">
+          <div>
+            <h2 id="modalTitle">—</h2>
+            <div class="sub" id="modalSub">Pilih faktur untuk melihat riwayat</div>
+          </div>
+          <button class="modal-close" onclick="closeFakturModal()">Tutup</button>
+        </div>
+        <div class="modal-body">
+          <div class="modal-stats" id="modalStats"></div>
+          <div style="font-size:0.85rem;font-weight:600;margin-bottom:8px;">Riwayat pembayaran</div>
+          <div style="overflow-x:auto;">
+            <table class="hist-table">
+              <thead>
+                <tr>
+                  <th>Tgl Masuk</th>
+                  <th>Sheet</th>
+                  <th>Bagian</th>
+                  <th>Sales</th>
+                  <th class="num">Tagihan</th>
+                  <th class="num">Cash</th>
+                  <th class="num">TF</th>
+                  <th class="num">Bayar</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="modalHist"></tbody>
+            </table>
+          </div>
+          <p class="muted" style="font-size:0.75rem;margin-top:12px;">
+            Untuk faktur <strong>TITIP</strong>, setiap baris = 1 kali pembayaran.
+            Urut dari paling lama → terbaru. Total bayar dijumlahkan di atas.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <footer>Cek Uang Masuk · Mode terang / gelap · Upload Excel</footer>
+  </div>
+
+  <script>
+    let allRows = [];
+
+    // ---- IndexedDB persistence ----
+    const DB_NAME = 'uangMasukDB';
+    const DB_VERSION = 1;
+    const DB_STORE = 'rows';
+    const DB_KEY = 'allRows';
+    let dbInstance = null;
+
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        if (dbInstance) return resolve(dbInstance);
+        if (!('indexedDB' in window)) return reject(new Error('IndexedDB tidak didukung browser ini'));
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = () => {
+          const db = req.result;
+          if (!db.objectStoreNames.contains(DB_STORE)) {
+            db.createObjectStore(DB_STORE);
+          }
+        };
+        req.onsuccess = () => { dbInstance = req.result; resolve(dbInstance); };
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function saveRowsToDB() {
+      try {
+        const db = await openDB();
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction(DB_STORE, 'readwrite');
+          tx.objectStore(DB_STORE).put(allRows, DB_KEY);
+          tx.oncomplete = resolve;
+          tx.onerror = () => reject(tx.error);
+        });
+      } catch (err) {
+        console.warn('Gagal simpan data ke IndexedDB:', err);
+      }
+    }
+
+    async function loadRowsFromDB() {
+      try {
+        const db = await openDB();
+        return await new Promise((resolve, reject) => {
+          const tx = db.transaction(DB_STORE, 'readonly');
+          const req = tx.objectStore(DB_STORE).get(DB_KEY);
+          req.onsuccess = () => resolve(req.result || []);
+          req.onerror = () => reject(req.error);
+        });
+      } catch (err) {
+        console.warn('Gagal baca data dari IndexedDB:', err);
+        return [];
+      }
+    }
+
+    async function clearRowsInDB() {
+      try {
+        const db = await openDB();
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction(DB_STORE, 'readwrite');
+          tx.objectStore(DB_STORE).delete(DB_KEY);
+          tx.oncomplete = resolve;
+          tx.onerror = () => reject(tx.error);
+        });
+      } catch (err) {
+        console.warn('Gagal hapus data di IndexedDB:', err);
+      }
+    }
+
+    const fileInput = document.getElementById('fileInput');
+    const fileInputMain = document.getElementById('fileInputMain');
+    const fileNameEl = document.getElementById('fileName');
+    const loading = document.getElementById('loading');
+    const emptyState = document.getElementById('emptyState');
+    const miniCards = document.getElementById('miniCards');
+    const searchBar = document.getElementById('searchBar');
+    const tableWrap = document.getElementById('tableWrap');
+    const tbody = document.getElementById('tbody');
+    const resultInfo = document.getElementById('resultInfo');
+    const dailyPanel = document.getElementById('dailyPanel');
+
+    function toggleTheme() {
+      const htmlEl = document.documentElement;
+      const next = htmlEl.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+      htmlEl.setAttribute('data-theme', next);
+      localStorage.setItem('faktur-theme', next);
+      updateThemeLabel();
+    }
+    function updateThemeLabel() {
+      const t = document.documentElement.getAttribute('data-theme');
+      const el = document.getElementById('themeLabel');
+      if (el) el.textContent = t === 'light' ? '🌙 Mode gelap' : '☀️ Mode terang';
+    }
+    (function initTheme() {
+      const saved = localStorage.getItem('faktur-theme') || 'light';
+      document.documentElement.setAttribute('data-theme', saved);
+      updateThemeLabel();
+    })();
+
+    function toggleMenu() {
+      document.getElementById('menuDd').classList.toggle('open');
+    }
+    function closeMenu() {
+      document.getElementById('menuDd').classList.remove('open');
+    }
+    document.addEventListener('click', function(e) {
+      const wrap = document.getElementById('menuWrap');
+      if (wrap && !wrap.contains(e.target)) closeMenu();
+    });
+
+    // Handle file input from both buttons
+    fileInput.addEventListener('change', e => {
+      if (e.target.files.length) handleFiles(e.target.files);
+    });
+    fileInputMain.addEventListener('change', e => {
+      if (e.target.files.length) handleFiles(e.target.files);
+    });
+
+    document.getElementById('searchInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') doSearch();
+    });
+    document.getElementById('filterMonth').addEventListener('change', doSearch);
+    document.getElementById('filterSection').addEventListener('change', doSearch);
+    document.getElementById('filterStatus').addEventListener('change', doSearch);
+
+    function clearData() {
+      allRows = [];
+      clearRowsInDB();
+      fileNameEl.textContent = 'Belum ada file diupload';
+      miniCards.classList.remove('show');
+      searchBar.classList.remove('show');
+      tableWrap.style.display = 'none';
+      resultInfo.style.display = 'none';
+      dailyPanel.style.display = 'none';
+      emptyState.style.display = 'block';
+      document.getElementById('clearBtn').style.display = 'none';
+      fileInput.value = '';
+      fileInputMain.value = '';
+      document.getElementById('dailyBody').innerHTML = 
+        '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--muted);cursor:default;">' +
+        'Belum ada data. Upload file Excel untuk mulai melihat ringkasan.' +
+        '</td></tr>';
+      document.getElementById('filterMonth').innerHTML = '<option value="all">Semua Bulan</option>';
+    }
+
+    async function handleFiles(fileList) {
+      const files = Array.from(fileList).filter(f => /\.(xlsx|xls)$/i.test(f.name));
+      if (!files.length) {
+        alert('File harus .xlsx atau .xls');
+        return;
+      }
+      emptyState.style.display = 'none';
+      loading.style.display = 'block';
+      tableWrap.style.display = 'none';
+
+      let added = 0;
+      const names = [];
+      for (const file of files) {
+        names.push(file.name.length > 18 ? file.name.slice(0, 16) + '…' : file.name);
+        try {
+          const buf = await file.arrayBuffer();
+          const wb = XLSX.read(new Uint8Array(buf), { type: 'array', cellDates: true });
+          const rows = parseWorkbook(wb);
+          const key = r => r.faktur + '|' + r.sheet + '|' + r.section + '|' + r.tagihan;
+          const existing = new Set(allRows.map(key));
+          for (const r of rows) {
+            if (!existing.has(key(r))) {
+              allRows.push(r);
+              existing.add(key(r));
+              added++;
+            }
+          }
+        } catch (err) {
+          console.error(file.name, err);
+          alert('Gagal baca ' + file.name + ': ' + err.message);
+        }
+      }
+
+      loading.style.display = 'none';
+      fileNameEl.textContent = names.join(', ');
+      document.getElementById('clearBtn').style.display = 'block';
+
+      if (allRows.length === 0) {
+        emptyState.style.display = 'block';
+        emptyState.querySelector('.hint').textContent = 'Tidak ditemukan data faktur. Pastikan format sheet berisi kolom No Faktur.';
+        return;
+      }
+      showSummary();
+      searchBar.classList.add('show');
+      saveRowsToDB();
+    }
+
+    const BULAN = {
+      '01':'Januari','1':'Januari','JANUARI':'Januari','JAN':'Januari',
+      '02':'Februari','2':'Februari','FEBRUARI':'Februari','FEB':'Februari',
+      '03':'Maret','3':'Maret','MARET':'Maret','MAR':'Maret',
+      '04':'April','4':'April','APRIL':'April','APR':'April',
+      '05':'Mei','5':'Mei','MEI':'Mei','MAY':'Mei',
+      '06':'Juni','6':'Juni','JUNI':'Juni','JUN':'Juni',
+      '07':'Juli','7':'Juli','JULI':'Juli','JUL':'Juli',
+      '08':'Agustus','8':'Agustus','AGUSTUS':'Agustus','AGU':'Agustus','AUG':'Agustus',
+      '09':'September','9':'September','SEPTEMBER':'September','SEP':'September',
+      '10':'Oktober','OKTOBER':'Oktober','OKT':'Oktober','OCT':'Oktober',
+      '11':'November','NOVEMBER':'November','NOV':'November',
+      '12':'Desember','DESEMBER':'Desember','DES':'Desember','DEC':'Desember'
+    };
+
+    function detectMonth(sheetName, dateLabel) {
+      const src = (dateLabel + ' ' + sheetName).toUpperCase();
+      let m = src.match(/\/(\d{1,2})\/(\d{4})/);
+      if (m) return BULAN[String(parseInt(m[1],10))] || BULAN[m[1]] || null;
+      m = src.match(/(\d{1,2})-(\d{2})/);
+      if (m) return BULAN[m[2]] || BULAN[String(parseInt(m[2],10))] || null;
+      for (const [k,v] of Object.entries(BULAN)) {
+        if (src.includes(k) && k.length > 2) return v;
+      }
+      m = sheetName.match(/(\d{1,2})-(\d{2})/);
+      if (m) return BULAN[m[2]] || null;
+      return null;
+    }
+
+    function parseWorkbook(wb) {
+      const rows = [];
+      for (const sheetName of wb.SheetNames) {
+        if (/^sheet\d*$/i.test(sheetName) && sheetName.toLowerCase() === 'sheet2') continue;
+        const ws = wb.Sheets[sheetName];
+        if (!ws) continue;
+        const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null, raw: true });
+        if (!aoa || aoa.length < 5) continue;
+
+        let dateLabel = sheetName;
+        for (let r = 0; r < Math.min(6, aoa.length); r++) {
+          for (let c = 0; c < (aoa[r] || []).length; c++) {
+            const v = aoa[r][c];
+            if (v && typeof v === 'string' && /\d{1,2}\/\d{1,2}\/\d{4}/.test(v)) {
+              dateLabel = v.trim();
+              break;
+            }
+            if (v instanceof Date) {
+              dateLabel = formatDate(v);
+              break;
+            }
+          }
+        }
+        const sheetMonth = detectMonth(sheetName, dateLabel);
+
+        let section = 'PIUTANG TEMPO';
+        let currentSales = '';
+
+        for (let r = 0; r < aoa.length; r++) {
+          const row = aoa[r] || [];
+          const rowStr = row.map(x => (x == null ? '' : String(x))).join(' ').toUpperCase();
+
+          if (rowStr.includes('CASH DROPPING')) { section = 'CASH DROPPING'; currentSales = ''; continue; }
+          if (rowStr.includes('PIUTANG TEMPO')) { section = 'PIUTANG TEMPO'; currentSales = ''; continue; }
+          if (/UANG MASUK DARI PIUTANG|UANG MASUK CASH|TOTAL UANG MASUK|MENGETAHUI|TOTAL CASH|TOTAL TRANSFER/.test(rowStr)) continue;
+
+          const colC = row[2] != null ? String(row[2]).trim() : '';
+          if (colC && /^(RAJU|JOSSY|HAFID|ZEIN|ALIM)/i.test(colC)) currentSales = colC;
+
+          let fakturIdx = -1, faktur = null;
+          for (let c = 2; c <= 5; c++) {
+            const v = row[c];
+            if (v == null) continue;
+            const s = String(v).trim();
+            if (/^\d{10,}$/.test(s) || /^0\d{10,}$/.test(s)) {
+              faktur = s; fakturIdx = c; break;
+            }
+          }
+          if (!faktur) continue;
+          if (/NO FAKTUR|NOMINAL|TAGIHAN/i.test(rowStr) && !/TOKO|WARUNG|MART|CELL|SWALAYAN|BUMDES/i.test(rowStr)) continue;
+
+          const namaToko = str(row[fakturIdx + 1]);
+          const alamat = str(row[fakturIdx + 2]);
+          let tagihan = num(row[fakturIdx + 5]);
+
+          let minyakCash = num(row[9]);
+          let minyakTf = num(row[10]);
+          let rupaCash = num(row[11]);
+          let rupaTf = num(row[12]);
+          let ket = str(row[13]) || str(row[14]) || '';
+
+          if (!tagihan) tagihan = num(row[8]) || num(row[fakturIdx + 5]);
+
+          let status = '—';
+          const ketUp = ket.toUpperCase();
+          if (ketUp.includes('LUNAS')) status = 'LUNAS';
+          else if (ketUp.includes('TITIP')) status = 'TITIP';
+          else if (ketUp.includes('TF') || ketUp.includes('TRANSFER')) status = 'TF';
+          else if (ketUp.includes('RETUR')) status = 'RETUR';
+          else if (ket) status = ket;
+
+          let sales = currentSales;
+          if (section === 'CASH DROPPING' && colC) sales = colC;
+          else if (!sales && colC && !/^\d+$/.test(colC)) sales = colC;
+
+          if (/^TOTAL/i.test(str(row[1])) || /^TOTAL/i.test(namaToko)) continue;
+
+          rows.push({
+            sheet: sheetName,
+            date: dateLabel,
+            month: sheetMonth || 'Lainnya',
+            section,
+            sales: sales || '—',
+            faktur,
+            toko: namaToko || '—',
+            alamat: alamat || '—',
+            tagihan,
+            minyakCash, minyakTf, rupaCash, rupaTf,
+            ket: ket || '—',
+            status
+          });
+        }
+      }
+      return rows;
+    }
+
+    function str(v) { return v == null ? '' : String(v).trim(); }
+    function num(v) {
+      if (v == null || v === '') return 0;
+      if (typeof v === 'number') return v;
+      const n = parseFloat(String(v).replace(/,/g, ''));
+      return isNaN(n) ? 0 : n;
+    }
+    function formatDate(d) {
+      const pad = n => n < 10 ? '0' + n : '' + n;
+      return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+    }
+    function fmt(n) { return !n ? '—' : n.toLocaleString('id-ID'); }
+
+    const MONTH_ORDER = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember','Lainnya'];
+
+    function latestMonth() {
+      const months = [...new Set(allRows.map(r => r.month).filter(Boolean))];
+      months.sort((a,b) => MONTH_ORDER.indexOf(a) - MONTH_ORDER.indexOf(b));
+      return months.length ? months[months.length - 1] : null;
+    }
+
+    function updateCards(rows) {
+      const data = rows || allRows;
+      document.getElementById('sTotal').textContent = data.length.toLocaleString('id-ID');
+      document.getElementById('sPiutang').textContent = data.filter(r => r.section === 'PIUTANG TEMPO').length.toLocaleString('id-ID');
+      document.getElementById('sDropping').textContent = data.filter(r => r.section === 'CASH DROPPING').length.toLocaleString('id-ID');
+      document.getElementById('sLunas').textContent = data.filter(r => r.status === 'LUNAS').length.toLocaleString('id-ID');
+      document.getElementById('sTitip').textContent = data.filter(r => r.status === 'TITIP').length.toLocaleString('id-ID');
+      document.getElementById('sSheets').textContent = new Set(data.map(r => r.sheet)).size;
+      miniCards.classList.add('show');
+    }
+
+    function buildDailySummary(rows) {
+      const body = document.getElementById('dailyBody');
+      if (!rows || !rows.length) {
+        dailyPanel.style.display = 'none';
+        return;
+      }
+      const map = {};
+      for (const r of rows) {
+        const k = r.sheet;
+        if (!map[k]) {
+          map[k] = {
+            sheet: r.sheet,
+            date: r.date,
+            month: r.month,
+            count: 0,
+            piutang: 0,
+            dropping: 0,
+            tagihan: 0,
+            cash: 0,
+            tf: 0
+          };
+        }
+        const g = map[k];
+        g.count++;
+        g.tagihan += r.tagihan || 0;
+        const bayarCash = (r.minyakCash || 0) + (r.rupaCash || 0);
+        const bayarTf = (r.minyakTf || 0) + (r.rupaTf || 0);
+        g.cash += bayarCash;
+        g.tf += bayarTf;
+        if (r.section === 'PIUTANG TEMPO') g.piutang += bayarCash + bayarTf;
+        else g.dropping += bayarCash + bayarTf;
+      }
+      const list = Object.values(map);
+      list.sort((a, b) => {
+        const pa = a.date.match(/(\d{1,2})\/(\d{1,2})/);
+        const pb = b.date.match(/(\d{1,2})\/(\d{1,2})/);
+        if (pa && pb) {
+          const da = parseInt(pa[2])*100 + parseInt(pa[1]);
+          const db = parseInt(pb[2])*100 + parseInt(pb[1]);
+          return da - db;
+        }
+        return a.sheet.localeCompare(b.sheet);
+      });
+
+      let sumC = 0, sumP = 0, sumD = 0, sumT = 0, sumCash = 0, sumTf = 0, sumCnt = 0;
+      body.innerHTML = list.map(g => {
+        const total = g.cash + g.tf;
+        sumC += g.count; sumP += g.piutang; sumD += g.dropping;
+        sumT += g.tagihan; sumCash += g.cash; sumTf += g.tf; sumCnt += total;
+        return '<tr data-sheet="' + esc(g.sheet) + '" onclick="filterBySheet(\'' + esc(g.sheet).replace(/'/g, "\\'") + '\')">' +
+          '<td><strong>' + esc(g.date) + '</strong></td>' +
+          '<td class="muted">' + esc(g.sheet) + '</td>' +
+          '<td class="num">' + g.count.toLocaleString('id-ID') + '</td>' +
+          '<td class="num">' + fmt(g.piutang) + '</td>' +
+          '<td class="num">' + fmt(g.dropping) + '</td>' +
+          '<td class="num">' + fmt(g.tagihan) + '</td>' +
+          '<td class="num">' + fmt(g.cash) + '</td>' +
+          '<td class="num">' + fmt(g.tf) + '</td>' +
+          '<td class="num"><strong>' + fmt(total) + '</strong></td>' +
+        '</tr>';
+      }).join('') +
+      '<tr class="total-row">' +
+        '<td colspan="2">TOTAL (' + list.length + ' hari)</td>' +
+        '<td class="num">' + sumC.toLocaleString('id-ID') + '</td>' +
+        '<td class="num">' + fmt(sumP) + '</td>' +
+        '<td class="num">' + fmt(sumD) + '</td>' +
+        '<td class="num">' + fmt(sumT) + '</td>' +
+        '<td class="num">' + fmt(sumCash) + '</td>' +
+        '<td class="num">' + fmt(sumTf) + '</td>' +
+        '<td class="num">' + fmt(sumCash + sumTf) + '</td>' +
+      '</tr>';
+
+      dailyPanel.style.display = 'block';
+      document.getElementById('dailyHint').textContent = 'Klik baris tanggal untuk filter detail faktur';
+    }
+
+    function filterBySheet(sheet) {
+      document.getElementById('searchInput').value = '';
+      document.querySelectorAll('#dailyBody tr').forEach(tr => {
+        tr.classList.toggle('active', tr.getAttribute('data-sheet') === sheet);
+      });
+      const filtered = allRows.filter(r => r.sheet === sheet);
+      if (filtered.length && filtered[0].month) {
+        const sel = document.getElementById('filterMonth');
+        if ([...sel.options].some(o => o.value === filtered[0].month)) {
+          sel.value = filtered[0].month;
+        }
+      }
+      document.getElementById('filterSection').value = 'all';
+      document.getElementById('filterStatus').value = 'all';
+      updateCards(filtered);
+      renderTable(filtered);
+      document.getElementById('tableWrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function showSummary() {
+      const months = [...new Set(allRows.map(r => r.month).filter(Boolean))];
+      months.sort((a,b) => MONTH_ORDER.indexOf(a) - MONTH_ORDER.indexOf(b));
+      const sel = document.getElementById('filterMonth');
+      const last = latestMonth();
+      sel.innerHTML = '<option value="all">Semua Bulan</option>' +
+        months.map(m => '<option value="' + m + '"' + (m === last ? ' selected' : '') + '>' + m + (m === last ? ' (terbaru)' : '') + '</option>').join('');
+
+      const scope = last ? allRows.filter(r => r.month === last) : allRows;
+      updateCards(scope);
+      buildDailySummary(scope);
+      renderTable(scope);
+    }
+
+    function doSearch() {
+      const q = document.getElementById('searchInput').value.trim().toLowerCase();
+      const mon = document.getElementById('filterMonth').value;
+      const sec = document.getElementById('filterSection').value;
+      const st = document.getElementById('filterStatus').value;
+      let filtered = allRows;
+      if (mon !== 'all') filtered = filtered.filter(r => r.month === mon);
+      if (sec !== 'all') filtered = filtered.filter(r => r.section === sec);
+      if (st !== 'all') filtered = filtered.filter(r => r.status === st);
+      updateCards(filtered);
+      buildDailySummary(filtered);
+      if (q) {
+        filtered = filtered.filter(r =>
+          r.faktur.toLowerCase().includes(q) ||
+          r.toko.toLowerCase().includes(q) ||
+          r.alamat.toLowerCase().includes(q) ||
+          r.sales.toLowerCase().includes(q) ||
+          r.sheet.toLowerCase().includes(q) ||
+          r.date.toLowerCase().includes(q) ||
+          (r.month && r.month.toLowerCase().includes(q))
+        );
+      }
+      renderTable(filtered);
+    }
+
+    function resetSearch() {
+      document.getElementById('searchInput').value = '';
+      const last = latestMonth();
+      document.getElementById('filterMonth').value = last || 'all';
+      document.getElementById('filterSection').value = 'all';
+      document.getElementById('filterStatus').value = 'all';
+      const scope = last ? allRows.filter(r => r.month === last) : allRows;
+      updateCards(scope);
+      buildDailySummary(scope);
+      renderTable(scope);
+    }
+
+    function openFakturModal(faktur) {
+      const rows = allRows.filter(r => r.faktur === faktur);
+      if (!rows.length) return;
+      rows.sort((a, b) => {
+        const pa = a.date.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+        const pb = b.date.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+        if (pa && pb) {
+          const da = parseInt(pa[3])*10000 + parseInt(pa[2])*100 + parseInt(pa[1]);
+          const db = parseInt(pb[3])*10000 + parseInt(pb[2])*100 + parseInt(pb[1]);
+          return da - db;
+        }
+        return a.sheet.localeCompare(b.sheet);
+      });
+
+      const first = rows[0];
+      const last = rows[rows.length - 1];
+      let totalCash = 0, totalTf = 0, maxTagihan = 0;
+      rows.forEach(r => {
+        totalCash += (r.minyakCash || 0) + (r.rupaCash || 0);
+        totalTf += (r.minyakTf || 0) + (r.rupaTf || 0);
+        if ((r.tagihan || 0) > maxTagihan) maxTagihan = r.tagihan || 0;
+      });
+      const totalBayar = totalCash + totalTf;
+      const sisa = Math.max(0, maxTagihan - totalBayar);
+
+      document.getElementById('modalTitle').textContent = faktur;
+      document.getElementById('modalSub').textContent =
+        (first.toko || '') + (first.alamat && first.alamat !== '—' ? ' · ' + first.alamat : '');
+
+      document.getElementById('modalStats').innerHTML =
+        '<div class="modal-stat"><div class="l">Tagihan (max)</div><div class="v">' + fmt(maxTagihan) + '</div></div>' +
+        '<div class="modal-stat"><div class="l">Total Bayar</div><div class="v" style="color:var(--green)">' + fmt(totalBayar) + '</div></div>' +
+        '<div class="modal-stat"><div class="l">Cash</div><div class="v">' + fmt(totalCash) + '</div></div>' +
+        '<div class="modal-stat"><div class="l">Transfer</div><div class="v">' + fmt(totalTf) + '</div></div>' +
+        '<div class="modal-stat"><div class="l">Sisa</div><div class="v" style="color:' + (sisa > 0 ? 'var(--yellow)' : 'var(--green)') + '">' + (sisa > 0 ? fmt(sisa) : '0 (lunas)') + '</div></div>' +
+        '<div class="modal-stat"><div class="l">x Bayar</div><div class="v">' + rows.length + 'x</div></div>' +
+        '<div class="modal-stat"><div class="l">Bayar pertama</div><div class="v" style="font-size:0.8rem">' + esc(first.date) + '</div></div>' +
+        '<div class="modal-stat"><div class="l">Bayar terakhir</div><div class="v" style="font-size:0.8rem">' + esc(last.date) + '</div></div>';
+
+      document.getElementById('modalHist').innerHTML = rows.map((r, i) => {
+        const bayar = (r.minyakCash || 0) + (r.rupaCash || 0) + (r.minyakTf || 0) + (r.rupaTf || 0);
+        return '<tr>' +
+          '<td><strong>' + esc(r.date) + '</strong></td>' +
+          '<td class="muted">' + esc(r.sheet) + '</td>' +
+          '<td>' + sectionBadge(r.section) + '</td>' +
+          '<td>' + esc(r.sales) + '</td>' +
+          '<td class="num">' + fmt(r.tagihan) + '</td>' +
+          '<td class="num">' + fmt((r.minyakCash || 0) + (r.rupaCash || 0)) + '</td>' +
+          '<td class="num">' + fmt((r.minyakTf || 0) + (r.rupaTf || 0)) + '</td>' +
+          '<td class="num"><strong>' + fmt(bayar) + '</strong></td>' +
+          '<td>' + statusBadge(r.status) + '</td>' +
+        '</tr>';
+      }).join('');
+
+      document.getElementById('fakturModal').classList.add('open');
+    }
+
+    function closeFakturModal() {
+      document.getElementById('fakturModal').classList.remove('open');
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeFakturModal(); });
+
+    function statusBadge(s) {
+      if (s === 'LUNAS') return '<span class="badge badge-lunas">LUNAS</span>';
+      if (s === 'TITIP') return '<span class="badge badge-titip">TITIP</span>';
+      if (s === 'TF') return '<span class="badge badge-tf">TF</span>';
+      if (s === 'RETUR') return '<span class="badge badge-retur">RETUR</span>';
+      return '<span class="muted">' + esc(s) + '</span>';
+    }
+    function sectionBadge(s) {
+      return '<span class="badge badge-section">' + (s === 'PIUTANG TEMPO' ? 'PIUTANG' : 'DROPPING') + '</span>';
+    }
+    function esc(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function buildLastPayMap() {
+      const map = {};
+      for (const r of allRows) {
+        const key = r.faktur;
+        if (!map[key]) {
+          map[key] = { date: r.date, sheet: r.sheet, sort: dateSortKey(r.date, r.sheet) };
+        } else {
+          const sk = dateSortKey(r.date, r.sheet);
+          if (sk >= map[key].sort) {
+            map[key] = { date: r.date, sheet: r.sheet, sort: sk };
+          }
+        }
+      }
+      return map;
+    }
+    function dateSortKey(dateStr, sheet) {
+      const m = String(dateStr).match(/(\d{1,2})\/(\d{1,2})(?:\/(\d{4}))?/);
+      if (m) {
+        const y = m[3] ? parseInt(m[3]) : 2026;
+        return y * 10000 + parseInt(m[2]) * 100 + parseInt(m[1]);
+      }
+      const s = String(sheet).match(/(\d{1,2})-(\d{1,2})/);
+      if (s) return 2026 * 10000 + parseInt(s[2]) * 100 + parseInt(s[1]);
+      return 0;
+    }
+
+    function renderTable(rows) {
+      resultInfo.style.display = 'block';
+      resultInfo.innerHTML = 'Menampilkan <strong>' + rows.length.toLocaleString('id-ID') + '</strong> dari <strong>' + allRows.length.toLocaleString('id-ID') + '</strong> faktur';
+
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="13" style="text-align:center;padding:32px;color:var(--muted)">Tidak ada data yang cocok.</td></tr>';
+        tableWrap.style.display = 'block';
+        return;
+      }
+
+      const lastPay = buildLastPayMap();
+
+      tbody.innerHTML = rows.map(function(r) {
+        const lp = lastPay[r.faktur];
+        const lastDate = lp ? lp.date : r.date;
+        const isSame = lastDate === r.date;
+        return '<tr>' +
+          '<td>' + esc(r.date) + '<br><span class="muted" style="font-size:0.7rem">' + esc(r.sheet) + '</span></td>' +
+          '<td>' + sectionBadge(r.section) + '</td>' +
+          '<td>' + esc(r.sales) + '</td>' +
+          '<td class="faktur"><span class="faktur-link" onclick="openFakturModal(\'' + esc(r.faktur).replace(/'/g, "\\'") + '\')" title="Lihat riwayat pembayaran">' + esc(r.faktur) + '</span></td>' +
+          '<td class="toko">' + esc(r.toko) + '</td>' +
+          '<td class="muted">' + esc(r.alamat) + '</td>' +
+          '<td class="num">' + fmt(r.tagihan) + '</td>' +
+          '<td class="num">' + fmt(r.minyakCash) + '</td>' +
+          '<td class="num">' + fmt(r.minyakTf) + '</td>' +
+          '<td class="num">' + fmt(r.rupaCash) + '</td>' +
+          '<td class="num">' + fmt(r.rupaTf) + '</td>' +
+          '<td style="white-space:nowrap">' +
+            (isSame
+              ? '<span class="muted">' + esc(lastDate) + '</span>'
+              : '<strong style="color:var(--accent)">' + esc(lastDate) + '</strong>') +
+            (lp && lp.sheet !== r.sheet ? '<br><span class="muted" style="font-size:0.65rem">' + esc(lp.sheet) + '</span>' : '') +
+          '</td>' +
+          '<td>' + statusBadge(r.status) +
+            (r.ket && r.ket !== r.status && r.ket !== '—' ? '<br><span class="muted" style="font-size:0.7rem">' + esc(r.ket) + '</span>' : '') +
+          '</td>' +
+        '</tr>';
+      }).join('');
+      tableWrap.style.display = 'block';
+    }
+
+    // ---- Load persisted data from IndexedDB on startup ----
+    (async function initFromDB() {
+      const saved = await loadRowsFromDB();
+      if (saved && saved.length) {
+        allRows = saved;
+        emptyState.style.display = 'none';
+        fileNameEl.textContent = 'Data tersimpan (' + allRows.length.toLocaleString('id-ID') + ' baris)';
+        document.getElementById('clearBtn').style.display = 'block';
+        showSummary();
+        searchBar.classList.add('show');
+      }
+    })();
+
+    // ---- PWA: install prompt ----
+    let deferredPrompt = null;
+    const installBtn = document.getElementById('installBtn');
+
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      deferredPrompt = e;
+      if (installBtn) installBtn.style.display = 'block';
+    });
+
+    function installApp() {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.finally(() => {
+        deferredPrompt = null;
+        if (installBtn) installBtn.style.display = 'none';
+      });
+    }
+
+    window.addEventListener('appinstalled', () => {
+      if (installBtn) installBtn.style.display = 'none';
+      deferredPrompt = null;
+    });
+
+    // ---- PWA: register service worker ----
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(err => {
+          console.warn('Service worker gagal didaftarkan:', err);
+        });
+      });
+    }
+  </script>
+</body>
+</html>
