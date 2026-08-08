@@ -235,11 +235,14 @@
     .table-wrap {
       display: none;
       overflow-x: auto;
+      overflow-y: auto;
+      max-height: 68vh;
       border: 1px solid var(--border);
       border-radius: 10px;
       background: var(--card);
       box-shadow: var(--shadow);
     }
+    .vrow-spacer td { padding: 0 !important; border: 0 !important; }
     table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
     th {
       background: var(--th-bg);
@@ -825,6 +828,65 @@
     const resultInfo = document.getElementById('resultInfo');
     const dailyPanel = document.getElementById('dailyPanel');
 
+    // ---- Virtualisasi tabel: hanya render baris yang terlihat di viewport ----
+    // Alih-alih menulis ribuan baris <tr> sekaligus ke DOM (lambat & berat),
+    // kita hanya render baris yang sedang terlihat (+ buffer di atas/bawah),
+    // lalu menambahkan baris "spacer" kosong agar tinggi scroll tetap akurat.
+    function createVirtualTable(wrapEl, tbodyEl, rowHtmlFn, options) {
+      options = options || {};
+      const rowHeight = options.rowHeight || 56; // estimasi tinggi rata-rata 1 baris (px)
+      const buffer = options.buffer != null ? options.buffer : 6; // baris ekstra di luar viewport
+      const colspan = options.colspan || 13;
+      let data = [];
+      let ticking = false;
+
+      function render() {
+        if (!data.length) return;
+        const scrollTop = wrapEl.scrollTop;
+        const viewH = wrapEl.clientHeight || 500;
+        const total = data.length;
+
+        let start = Math.floor(scrollTop / rowHeight) - buffer;
+        if (start < 0) start = 0;
+        const visibleCount = Math.ceil(viewH / rowHeight) + buffer * 2;
+        let end = start + visibleCount;
+        if (end > total) end = total;
+
+        const topPad = start * rowHeight;
+        const bottomPad = (total - end) * rowHeight;
+
+        let html = '';
+        if (topPad > 0) {
+          html += '<tr class="vrow-spacer" aria-hidden="true" style="height:' + topPad + 'px"><td colspan="' + colspan + '"></td></tr>';
+        }
+        for (let i = start; i < end; i++) {
+          html += rowHtmlFn(data[i], i);
+        }
+        if (bottomPad > 0) {
+          html += '<tr class="vrow-spacer" aria-hidden="true" style="height:' + bottomPad + 'px"><td colspan="' + colspan + '"></td></tr>';
+        }
+        tbodyEl.innerHTML = html;
+      }
+
+      function onScroll() {
+        if (!ticking) {
+          ticking = true;
+          requestAnimationFrame(function() { ticking = false; render(); });
+        }
+      }
+      wrapEl.addEventListener('scroll', onScroll);
+      window.addEventListener('resize', onScroll);
+
+      return {
+        setData: function(rows) {
+          data = rows || [];
+          wrapEl.scrollTop = 0;
+          if (data.length) render();
+        },
+        refresh: render
+      };
+    }
+
     function toggleTheme() {
       const htmlEl = document.documentElement;
       const next = htmlEl.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
@@ -1328,6 +1390,26 @@
       document.getElementById('tabsBar').style.display = 'flex';
     }
 
+    function salesRowHtml(r) {
+      return '<tr>' +
+        '<td>' + esc(r.tanggal) + '<br><span class="muted" style="font-size:0.7rem">' + esc(r.sheet) + '</span></td>' +
+        '<td class="faktur">' + esc(r.noFaktur) + '</td>' +
+        '<td>' + esc(r.produk) + '</td>' +
+        '<td class="num">' + r.jumlah.toLocaleString('id-ID') + '</td>' +
+        '<td>' + esc(r.satuan) + '</td>' +
+        '<td class="num">' + fmt(r.hargaJual) + '</td>' +
+        '<td class="num">' + fmt(r.disc) + '</td>' +
+        '<td class="num"><strong>' + fmt(r.total) + '</strong></td>' +
+        '<td>' + esc(r.sales) + '</td>' +
+        '<td class="toko">' + esc(r.customer) + '</td>' +
+        '<td class="muted">' + esc(r.alamat) + '</td>' +
+        '<td>' + esc(r.pembayaran) + '</td>' +
+        '<td class="num">' + fmt(r.hargaBeli) + '</td>' +
+      '</tr>';
+    }
+
+    const salesVirtual = createVirtualTable(salesTableWrap, salesTbody, salesRowHtml, { rowHeight: 52, colspan: 13 });
+
     function renderSalesTable(rows) {
       salesResultInfo.style.display = 'block';
       salesResultInfo.innerHTML = 'Menampilkan <strong>' + rows.length.toLocaleString('id-ID') + '</strong> dari <strong>' + salesRows.length.toLocaleString('id-ID') + '</strong> transaksi';
@@ -1335,27 +1417,12 @@
       if (!rows.length) {
         salesTbody.innerHTML = '<tr><td colspan="13" style="text-align:center;padding:32px;color:var(--muted)">Tidak ada data yang cocok.</td></tr>';
         salesTableWrap.style.display = 'block';
+        salesVirtual.setData([]);
         return;
       }
 
-      salesTbody.innerHTML = rows.map(r =>
-        '<tr>' +
-          '<td>' + esc(r.tanggal) + '<br><span class="muted" style="font-size:0.7rem">' + esc(r.sheet) + '</span></td>' +
-          '<td class="faktur">' + esc(r.noFaktur) + '</td>' +
-          '<td>' + esc(r.produk) + '</td>' +
-          '<td class="num">' + r.jumlah.toLocaleString('id-ID') + '</td>' +
-          '<td>' + esc(r.satuan) + '</td>' +
-          '<td class="num">' + fmt(r.hargaJual) + '</td>' +
-          '<td class="num">' + fmt(r.disc) + '</td>' +
-          '<td class="num"><strong>' + fmt(r.total) + '</strong></td>' +
-          '<td>' + esc(r.sales) + '</td>' +
-          '<td class="toko">' + esc(r.customer) + '</td>' +
-          '<td class="muted">' + esc(r.alamat) + '</td>' +
-          '<td>' + esc(r.pembayaran) + '</td>' +
-          '<td class="num">' + fmt(r.hargaBeli) + '</td>' +
-        '</tr>'
-      ).join('');
       salesTableWrap.style.display = 'block';
+      salesVirtual.setData(rows);
     }
 
     function populateSalesFilters() {
@@ -1598,6 +1665,40 @@
       return 0;
     }
 
+    // Map faktur -> tanggal bayar terakhir, dihitung sekali per pencarian
+    // (bukan setiap frame scroll) supaya virtualisasi tetap ringan.
+    let fakturLastPayMap = {};
+
+    function fakturRowHtml(r) {
+      const lp = fakturLastPayMap[r.faktur];
+      const lastDate = lp ? lp.date : r.date;
+      const isSame = lastDate === r.date;
+      return '<tr>' +
+        '<td>' + esc(r.date) + '<br><span class="muted" style="font-size:0.7rem">' + esc(r.sheet) + '</span></td>' +
+        '<td>' + sectionBadge(r.section) + '</td>' +
+        '<td>' + esc(r.sales) + '</td>' +
+        '<td class="faktur"><span class="faktur-link" onclick="openFakturModal(\'' + esc(r.faktur).replace(/'/g, "\\'") + '\')" title="Lihat riwayat pembayaran">' + esc(r.faktur) + '</span></td>' +
+        '<td class="toko">' + esc(r.toko) + '</td>' +
+        '<td class="muted">' + esc(r.alamat) + '</td>' +
+        '<td class="num">' + fmt(r.tagihan) + '</td>' +
+        '<td class="num">' + fmt(r.minyakCash) + '</td>' +
+        '<td class="num">' + fmt(r.minyakTf) + '</td>' +
+        '<td class="num">' + fmt(r.rupaCash) + '</td>' +
+        '<td class="num">' + fmt(r.rupaTf) + '</td>' +
+        '<td style="white-space:nowrap">' +
+          (isSame
+            ? '<span class="muted">' + esc(lastDate) + '</span>'
+            : '<strong style="color:var(--accent)">' + esc(lastDate) + '</strong>') +
+          (lp && lp.sheet !== r.sheet ? '<br><span class="muted" style="font-size:0.65rem">' + esc(lp.sheet) + '</span>' : '') +
+        '</td>' +
+        '<td>' + statusBadge(r.status) +
+          (r.ket && r.ket !== r.status && r.ket !== '—' ? '<br><span class="muted" style="font-size:0.7rem">' + esc(r.ket) + '</span>' : '') +
+        '</td>' +
+      '</tr>';
+    }
+
+    const fakturVirtual = createVirtualTable(tableWrap, tbody, fakturRowHtml, { rowHeight: 56, colspan: 13 });
+
     function renderTable(rows) {
       resultInfo.style.display = 'block';
       resultInfo.innerHTML = 'Menampilkan <strong>' + rows.length.toLocaleString('id-ID') + '</strong> dari <strong>' + allRows.length.toLocaleString('id-ID') + '</strong> faktur';
@@ -1605,39 +1706,13 @@
       if (!rows.length) {
         tbody.innerHTML = '<tr><td colspan="13" style="text-align:center;padding:32px;color:var(--muted)">Tidak ada data yang cocok.</td></tr>';
         tableWrap.style.display = 'block';
+        fakturVirtual.setData([]);
         return;
       }
 
-      const lastPay = buildLastPayMap();
-
-      tbody.innerHTML = rows.map(function(r) {
-        const lp = lastPay[r.faktur];
-        const lastDate = lp ? lp.date : r.date;
-        const isSame = lastDate === r.date;
-        return '<tr>' +
-          '<td>' + esc(r.date) + '<br><span class="muted" style="font-size:0.7rem">' + esc(r.sheet) + '</span></td>' +
-          '<td>' + sectionBadge(r.section) + '</td>' +
-          '<td>' + esc(r.sales) + '</td>' +
-          '<td class="faktur"><span class="faktur-link" onclick="openFakturModal(\'' + esc(r.faktur).replace(/'/g, "\\'") + '\')" title="Lihat riwayat pembayaran">' + esc(r.faktur) + '</span></td>' +
-          '<td class="toko">' + esc(r.toko) + '</td>' +
-          '<td class="muted">' + esc(r.alamat) + '</td>' +
-          '<td class="num">' + fmt(r.tagihan) + '</td>' +
-          '<td class="num">' + fmt(r.minyakCash) + '</td>' +
-          '<td class="num">' + fmt(r.minyakTf) + '</td>' +
-          '<td class="num">' + fmt(r.rupaCash) + '</td>' +
-          '<td class="num">' + fmt(r.rupaTf) + '</td>' +
-          '<td style="white-space:nowrap">' +
-            (isSame
-              ? '<span class="muted">' + esc(lastDate) + '</span>'
-              : '<strong style="color:var(--accent)">' + esc(lastDate) + '</strong>') +
-            (lp && lp.sheet !== r.sheet ? '<br><span class="muted" style="font-size:0.65rem">' + esc(lp.sheet) + '</span>' : '') +
-          '</td>' +
-          '<td>' + statusBadge(r.status) +
-            (r.ket && r.ket !== r.status && r.ket !== '—' ? '<br><span class="muted" style="font-size:0.7rem">' + esc(r.ket) + '</span>' : '') +
-          '</td>' +
-        '</tr>';
-      }).join('');
+      fakturLastPayMap = buildLastPayMap();
       tableWrap.style.display = 'block';
+      fakturVirtual.setData(rows);
     }
 
     // ---- Load persisted data from IndexedDB on startup ----
