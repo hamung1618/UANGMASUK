@@ -582,19 +582,22 @@
     </div>
 
     <div id="tabPenjualan" style="display:none;">
-      <div class="search-bar show" style="margin-bottom:14px;">
-        <label class="upload-btn" style="display:inline-flex;">
-          📂 Upload Data Penjualan
-          <input type="file" id="fileInputSales" accept=".xlsx,.xls" multiple>
-        </label>
-        <span class="file-label" id="salesFileName" style="display:none;"></span>
-        <button class="btn btn-outline" id="clearSalesBtn" style="display:none;" onclick="clearSalesData()">Hapus Data Penjualan</button>
-      </div>
-
-      <div class="search-bar" id="salesSearchBar">
+      <div class="search-bar show" id="salesSearchBar">
         <input type="text" id="salesSearchInput" placeholder="Cari No Faktur, produk, customer, atau sales..." autocomplete="off">
         <button class="btn" onclick="doSalesSearch()">Cari</button>
         <button class="btn btn-outline" onclick="resetSalesSearch()">Reset</button>
+        <div class="menu-wrap" id="salesMenuWrap">
+          <button class="theme-btn" id="salesSettingsBtn" onclick="toggleSalesMenu()" title="Pengaturan Data Penjualan">⚙️</button>
+          <div class="menu-dd" id="salesMenuDd">
+            <label class="menu-item upload-item">
+              <input type="file" id="fileInputSales" accept=".xlsx,.xls" multiple>
+              📂 Upload Data Penjualan
+            </label>
+            <button class="menu-item" id="clearSalesBtn" onclick="clearSalesData(); closeSalesMenu();" style="display: none;">✕ Hapus Data Penjualan</button>
+            <div class="menu-divider"></div>
+            <div class="menu-files" id="salesFileName">Belum ada file diupload</div>
+          </div>
+        </div>
       </div>
 
       <div class="result-info" id="salesResultInfo" style="display:none;">Menampilkan <strong>0</strong> dari <strong>0</strong> transaksi</div>
@@ -854,6 +857,17 @@
     document.addEventListener('click', function(e) {
       const wrap = document.getElementById('menuWrap');
       if (wrap && !wrap.contains(e.target)) closeMenu();
+    });
+
+    function toggleSalesMenu() {
+      document.getElementById('salesMenuDd').classList.toggle('open');
+    }
+    function closeSalesMenu() {
+      document.getElementById('salesMenuDd').classList.remove('open');
+    }
+    document.addEventListener('click', function(e) {
+      const wrap = document.getElementById('salesMenuWrap');
+      if (wrap && !wrap.contains(e.target)) closeSalesMenu();
     });
 
     // Handle file input from both buttons
@@ -1292,8 +1306,7 @@
 
       salesLoading.style.display = 'none';
       salesFileNameEl.textContent = names.join(', ');
-      salesFileNameEl.style.display = 'inline';
-      document.getElementById('clearSalesBtn').style.display = 'inline-block';
+      document.getElementById('clearSalesBtn').style.display = 'block';
 
       if (salesRows.length === 0) {
         salesEmptyState.style.display = 'block';
@@ -1359,9 +1372,7 @@
     function clearSalesData() {
       salesRows = [];
       clearSalesInDB();
-      salesFileNameEl.textContent = '';
-      salesFileNameEl.style.display = 'none';
-      salesSearchBar.classList.remove('show');
+      salesFileNameEl.textContent = 'Belum ada file diupload';
       salesTableWrap.style.display = 'none';
       salesResultInfo.style.display = 'none';
       salesEmptyState.style.display = 'block';
@@ -1601,9 +1612,7 @@
         salesRows = savedSales;
         salesEmptyState.style.display = 'none';
         salesFileNameEl.textContent = 'Data tersimpan (' + salesRows.length.toLocaleString('id-ID') + ' baris)';
-        salesFileNameEl.style.display = 'inline';
-        document.getElementById('clearSalesBtn').style.display = 'inline-block';
-        salesSearchBar.classList.add('show');
+        document.getElementById('clearSalesBtn').style.display = 'block';
         renderSalesTable(salesRows);
       }
 
