@@ -584,6 +584,9 @@
     <div id="tabPenjualan" style="display:none;">
       <div class="search-bar show" id="salesSearchBar">
         <input type="text" id="salesSearchInput" placeholder="Cari No Faktur, produk, customer, atau sales..." autocomplete="off">
+        <select id="filterSalesMonth"><option value="all">Semua Bulan</option></select>
+        <select id="filterSalesPembayaran"><option value="all">Semua Pembayaran</option></select>
+        <select id="filterSalesSales"><option value="all">Semua Sales</option></select>
         <button class="btn" onclick="doSalesSearch()">Cari</button>
         <button class="btn btn-outline" onclick="resetSalesSearch()">Reset</button>
         <div class="menu-wrap" id="salesMenuWrap">
@@ -1203,6 +1206,9 @@
     document.getElementById('salesSearchInput').addEventListener('keydown', e => {
       if (e.key === 'Enter') doSalesSearch();
     });
+    document.getElementById('filterSalesMonth').addEventListener('change', doSalesSearch);
+    document.getElementById('filterSalesPembayaran').addEventListener('change', doSalesSearch);
+    document.getElementById('filterSalesSales').addEventListener('change', doSalesSearch);
 
     function parseSalesWorkbook(wb) {
       const rows = [];
@@ -1251,10 +1257,12 @@
           let tgl = get('tanggal');
           if (tgl instanceof Date) tgl = formatDate(tgl);
           else tgl = tgl == null ? '' : String(tgl).trim();
+          const monthVal = detectMonth(sheetName, tgl);
 
           rows.push({
             sheet: sheetName,
             tanggal: tgl,
+            month: monthVal || 'Lainnya',
             noFaktur: String(rawFaktur).trim(),
             produk: str(get('produk')),
             jumlah: num(get('jumlah')),
@@ -1314,6 +1322,7 @@
         return;
       }
       salesSearchBar.classList.add('show');
+      populateSalesFilters();
       renderSalesTable(salesRows);
       saveSalesToDB();
       document.getElementById('tabsBar').style.display = 'flex';
@@ -1349,9 +1358,38 @@
       salesTableWrap.style.display = 'block';
     }
 
+    function populateSalesFilters() {
+      const monthSel = document.getElementById('filterSalesMonth');
+      const paySel = document.getElementById('filterSalesPembayaran');
+      const salesSel = document.getElementById('filterSalesSales');
+      const curMonth = monthSel.value, curPay = paySel.value, curSales = salesSel.value;
+
+      const months = [...new Set(salesRows.map(r => r.month).filter(Boolean))];
+      months.sort((a, b) => MONTH_ORDER.indexOf(a) - MONTH_ORDER.indexOf(b));
+      monthSel.innerHTML = '<option value="all">Semua Bulan</option>' +
+        months.map(m => '<option value="' + esc(m) + '">' + esc(m) + '</option>').join('');
+      if (months.includes(curMonth)) monthSel.value = curMonth;
+
+      const pays = [...new Set(salesRows.map(r => r.pembayaran).filter(v => v && v !== '—'))].sort();
+      paySel.innerHTML = '<option value="all">Semua Pembayaran</option>' +
+        pays.map(p => '<option value="' + esc(p) + '">' + esc(p) + '</option>').join('');
+      if (pays.includes(curPay)) paySel.value = curPay;
+
+      const salesNames = [...new Set(salesRows.map(r => r.sales).filter(v => v && v !== '—'))].sort();
+      salesSel.innerHTML = '<option value="all">Semua Sales</option>' +
+        salesNames.map(s => '<option value="' + esc(s) + '">' + esc(s) + '</option>').join('');
+      if (salesNames.includes(curSales)) salesSel.value = curSales;
+    }
+
     function doSalesSearch() {
       const q = document.getElementById('salesSearchInput').value.trim().toLowerCase();
+      const mon = document.getElementById('filterSalesMonth').value;
+      const pay = document.getElementById('filterSalesPembayaran').value;
+      const sls = document.getElementById('filterSalesSales').value;
       let filtered = salesRows;
+      if (mon !== 'all') filtered = filtered.filter(r => r.month === mon);
+      if (pay !== 'all') filtered = filtered.filter(r => r.pembayaran === pay);
+      if (sls !== 'all') filtered = filtered.filter(r => r.sales === sls);
       if (q) {
         filtered = filtered.filter(r =>
           r.noFaktur.toLowerCase().includes(q) ||
@@ -1366,6 +1404,9 @@
 
     function resetSalesSearch() {
       document.getElementById('salesSearchInput').value = '';
+      document.getElementById('filterSalesMonth').value = 'all';
+      document.getElementById('filterSalesPembayaran').value = 'all';
+      document.getElementById('filterSalesSales').value = 'all';
       renderSalesTable(salesRows);
     }
 
@@ -1378,6 +1419,10 @@
       salesEmptyState.style.display = 'block';
       salesEmptyState.querySelector('.hint').textContent = 'Kolom: Tanggal, No.Faktur, Produk, Jumlah, Satuan, Harga Jual, Disc, Total, Sales, Customer, Alamat, Pembayaran, Harga Beli.\nData diproses di browser Anda.';
       document.getElementById('clearSalesBtn').style.display = 'none';
+      document.getElementById('salesSearchInput').value = '';
+      document.getElementById('filterSalesMonth').innerHTML = '<option value="all">Semua Bulan</option>';
+      document.getElementById('filterSalesPembayaran').innerHTML = '<option value="all">Semua Pembayaran</option>';
+      document.getElementById('filterSalesSales').innerHTML = '<option value="all">Semua Sales</option>';
       fileInputSales.value = '';
     }
 
@@ -1609,10 +1654,11 @@
 
       const savedSales = await loadSalesFromDB();
       if (savedSales && savedSales.length) {
-        salesRows = savedSales;
+        salesRows = savedSales.map(r => r.month ? r : Object.assign({}, r, { month: detectMonth(r.sheet, r.tanggal) || 'Lainnya' }));
         salesEmptyState.style.display = 'none';
         salesFileNameEl.textContent = 'Data tersimpan (' + salesRows.length.toLocaleString('id-ID') + ' baris)';
         document.getElementById('clearSalesBtn').style.display = 'block';
+        populateSalesFilters();
         renderSalesTable(salesRows);
       }
 
