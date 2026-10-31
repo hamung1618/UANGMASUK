@@ -8,9 +8,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Uang Masuk">
-  <link rel="manifest" href="file:///C:/Users/LENOVO%20T470S/OneDrive/Desktop/KasGM-main/manifest.json">
-  <link rel="apple-touch-icon" href="file:///C:/Users/LENOVO%20T470S/OneDrive/Desktop/KasGM-main/icon.svg">
-  <link rel="icon" href="file:///C:/Users/LENOVO%20T470S/OneDrive/Desktop/KasGM-main/icon.svg" type="image/svg+xml">
+  <meta name="description" content="Laporan uang masuk Minyak &amp; Rupa-rupa. Data tersimpan di perangkat Anda.">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="icon" href="./icon-192.png" type="image/png" sizes="192x192">
   <title>Laporan Uang Masuk — Minyak &amp; Rupa-rupa</title>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"
           onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'"></script>
@@ -370,6 +372,36 @@
       font-size: 0.8rem; padding-top: 16px; border-top: 1px solid var(--border);
     }
 
+    /* PWA standalone: judul sistem sudah di title bar — sembunyikan h1 agar tidak dobel */
+    @media (display-mode: standalone) {
+      header h1 { display: none; }
+      header {
+        margin-bottom: 4px;
+        padding-bottom: 6px;
+        min-height: 0;
+        border-bottom: none;
+      }
+      .container { padding-top: 6px; }
+    }
+    /* iOS Safari "Add to Home Screen" */
+    @media (display-mode: standalone), (display-mode: fullscreen) {
+      body.pwa-standalone header h1 { display: none; }
+    }
+    html.pwa-standalone header h1,
+    body.pwa-standalone header h1 {
+      display: none !important;
+    }
+    html.pwa-standalone header,
+    body.pwa-standalone header {
+      margin-bottom: 4px;
+      padding-bottom: 6px;
+      border-bottom: none;
+    }
+    html.pwa-standalone .container,
+    body.pwa-standalone .container {
+      padding-top: 6px;
+    }
+
     @media (max-width: 700px) {
       .card-value { font-size: 0.95rem; font-weight: 400; }
       .cards { gap: 10px; }
@@ -417,6 +449,10 @@
           </button>
           <button class="menu-item" onclick="exportAllJSON(); closeMenu();">
             ⬇️ Export Backup (JSON)
+          </button>
+          <div class="menu-divider"></div>
+          <button class="menu-item" id="btnInstall" style="display:none" onclick="installPWA(); closeMenu();">
+            📱 Instal Aplikasi (PWA)
           </button>
         </div>
       </div>
@@ -2572,7 +2608,7 @@
     </div>
 
     <footer>
-      Data tersimpan di browser Anda (IndexedDB per-bulan + fallback localStorage). Upload file Excel laporan harian untuk menambah data bulanan.
+      Data tersimpan di perangkat Anda (IndexedDB). Bisa diinstal sebagai aplikasi (PWA). Upload Excel laporan harian untuk menambah data.
     </footer>
   </div>
 
@@ -4689,12 +4725,65 @@
   </script>
 
   <script>
+    // ===== PWA: Service Worker + Install prompt =====
+    let _deferredPrompt = null;
+
+    // Deteksi mode terinstal (termasuk iOS)
+    (function markStandalone() {
+      const isPWA = window.matchMedia('(display-mode: standalone)').matches
+        || window.matchMedia('(display-mode: fullscreen)').matches
+        || window.navigator.standalone === true;
+      if (isPWA) {
+        document.documentElement.classList.add('pwa-standalone');
+        document.body.classList.add('pwa-standalone');
+        // Title bar sudah cukup; document.title tetap singkat
+        document.title = 'Uang Masuk';
+      }
+    })();
+
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').then((reg) => {
           console.log('[PWA] SW registered', reg.scope);
+          // Cek update
+          reg.addEventListener('updatefound', () => {
+            const nw = reg.installing;
+            if (!nw) return;
+            nw.addEventListener('statechange', () => {
+              if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+                toast('Versi baru tersedia. Refresh untuk update.', 'success');
+              }
+            });
+          });
         }).catch((err) => console.warn('[PWA] SW failed', err));
       });
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      _deferredPrompt = e;
+      const btn = document.getElementById('btnInstall');
+      if (btn) btn.style.display = 'flex';
+    });
+
+    window.addEventListener('appinstalled', () => {
+      _deferredPrompt = null;
+      const btn = document.getElementById('btnInstall');
+      if (btn) btn.style.display = 'none';
+      toast('Aplikasi berhasil diinstal', 'success');
+    });
+
+    async function installPWA() {
+      if (!_deferredPrompt) {
+        toast('Di Chrome/Edge: menu ⋮ → Install app. Di HP: Tambahkan ke layar utama.', 'error');
+        return;
+      }
+      _deferredPrompt.prompt();
+      const { outcome } = await _deferredPrompt.userChoice;
+      _deferredPrompt = null;
+      const btn = document.getElementById('btnInstall');
+      if (btn) btn.style.display = 'none';
+      if (outcome === 'accepted') toast('Aplikasi diinstal', 'success');
     }
   </script>
 
