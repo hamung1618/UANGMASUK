@@ -14,10 +14,8 @@
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="icon" href="./icon-192.png" type="image/png" sizes="192x192">
   <title>Laporan Uang Masuk — Minyak &amp; Rupa-rupa</title>
-  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"
-          onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'"></script>
   <style>
-    :root {
+    :root, html[data-theme="dark"] {
       --bg: #0f172a;
       --card: #1e293b;
       --card2: #334155;
@@ -32,7 +30,42 @@
       --red: #ef4444;
       --minyak: #3b82f6;
       --rupa: #22c55e;
+      --thead-bg: #0f172a;
+      --row-hover: rgba(59,130,246,0.06);
+      --total-row: rgba(59,130,246,0.12);
+      --overlay: rgba(0,0,0,0.65);
+      --shadow: rgba(0,0,0,0.45);
     }
+    html[data-theme="light"] {
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --card2: #e2e8f0;
+      --border: #cbd5e1;
+      --text: #0f172a;
+      --muted: #64748b;
+      --accent: #2563eb;
+      --accent2: #1d4ed8;
+      --green: #16a34a;
+      --green-bg: #dcfce7;
+      --orange: #d97706;
+      --red: #dc2626;
+      --minyak: #2563eb;
+      --rupa: #16a34a;
+      --thead-bg: #e2e8f0;
+      --row-hover: rgba(37,99,235,0.06);
+      --total-row: rgba(37,99,235,0.10);
+      --overlay: rgba(15,23,42,0.45);
+      --shadow: rgba(15,23,42,0.18);
+    }
+    .theme-btn {
+      width: 28px; height: 28px; border-radius: 6px;
+      background: var(--card); border: 1px solid var(--border);
+      color: var(--text); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.95rem; line-height: 1;
+      transition: all 0.15s; flex-shrink: 0; padding: 0;
+    }
+    .theme-btn:hover { border-color: var(--accent); background: var(--card2); }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -79,7 +112,7 @@
       position: absolute; top: calc(100% + 8px); right: 0;
       background: var(--card); border: 1px solid var(--border);
       border-radius: 12px; min-width: 220px;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+      box-shadow: 0 12px 40px var(--shadow);
       padding: 6px; z-index: 40;
       display: none; flex-direction: column; gap: 2px;
     }
@@ -183,7 +216,7 @@
     table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
     thead { position: sticky; top: 0; z-index: 2; }
     th {
-      background: #0f172a;
+      background: var(--thead-bg);
       color: var(--muted);
       font-weight: 600; font-size: 0.72rem;
       text-transform: uppercase; letter-spacing: 0.04em;
@@ -197,9 +230,9 @@
       padding: 10px; border-bottom: 1px solid rgba(71,85,105,0.4);
       text-align: right; white-space: nowrap;
     }
-    tr:hover td { background: rgba(59,130,246,0.06); }
+    tr:hover td { background: var(--row-hover); }
     tr.total-row td {
-      background: rgba(59,130,246,0.12);
+      background: var(--total-row);
       font-weight: 700; border-top: 2px solid var(--accent);
     }
     .badge {
@@ -207,6 +240,17 @@
       font-size: 0.72rem; font-weight: 600;
     }
     .badge-minyak { background: rgba(59,130,246,0.2); color: #93c5fd; }
+
+    /* TITIP: kolom padat */
+    #tab-titip th:nth-child(2), #tab-titip td:nth-child(2) {
+      width: 48px; max-width: 52px; white-space: nowrap;
+    }
+    #tab-titip th:nth-child(4), #tab-titip td:nth-child(4) {
+      width: 64px; max-width: 80px; white-space: nowrap;
+    }
+    #tab-titip td:nth-child(4) .badge {
+      padding: 1px 5px; font-size: 0.68rem;
+    }
     .badge-rupa { background: rgba(34,197,94,0.2); color: #86efac; }
 
     .faded { opacity: 0.25; filter: blur(0.6px); user-select: none; }
@@ -306,7 +350,7 @@
       background: var(--card2); color: var(--text);
       padding: 14px 20px; border-radius: 12px;
       border: 1px solid var(--border);
-      box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+      box-shadow: 0 10px 40px var(--shadow);
       z-index: 100; transform: translateY(120px); opacity: 0;
       transition: all 0.3s ease; max-width: 360px;
       font-size: 0.9rem;
@@ -316,7 +360,7 @@
     .toast.error { border-left: 4px solid var(--red); }
 
     .modal-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+      position: fixed; inset: 0; background: var(--overlay);
       display: none; align-items: center; justify-content: center;
       z-index: 50; padding: 16px;
     }
@@ -348,14 +392,14 @@
     }
     .rincian-header {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 12px 16px; background: #0f172a;
+      padding: 12px 16px; background: var(--thead-bg);
       border-bottom: 1px solid var(--border); gap: 12px; flex-wrap: wrap;
     }
     .rincian-header h3 { font-size: 0.95rem; font-weight: 650; }
     .rincian-header .meta { font-size: 0.8rem; color: var(--muted); }
     tr.day-row { cursor: pointer; }
-    tr.day-row:hover td { background: rgba(59,130,246,0.12); }
-    tr.day-row.active td { background: rgba(59,130,246,0.18); }
+    tr.day-row:hover td { background: var(--total-row); }
+    tr.day-row.active td { background: var(--total-row); }
     .rincian-section-title {
       font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
       letter-spacing: 0.04em; color: var(--muted);
@@ -373,8 +417,8 @@
     }
 
     /* PWA standalone: judul sistem sudah di title bar — sembunyikan h1 agar tidak dobel */
-    @media (display-mode: standalone) {
-      header h1 { display: none; }
+    @media (display-mode: standalone), (display-mode: fullscreen) {
+      header h1 { display: none !important; }
       header {
         margin-bottom: 4px;
         padding-bottom: 6px;
@@ -382,10 +426,6 @@
         border-bottom: none;
       }
       .container { padding-top: 6px; }
-    }
-    /* iOS Safari "Add to Home Screen" */
-    @media (display-mode: standalone), (display-mode: fullscreen) {
-      body.pwa-standalone header h1 { display: none; }
     }
     html.pwa-standalone header h1,
     body.pwa-standalone header h1 {
@@ -411,6 +451,17 @@
       .filter-group { flex-wrap: wrap; }
     }
   </style>
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('um_theme');
+        if (t !== 'light' && t !== 'dark') t = 'dark';
+        document.documentElement.setAttribute('data-theme', t);
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', t === 'light' ? '#e2e8f0' : '#1e293b');
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
   <div class="container">
@@ -425,13 +476,15 @@
         <button class="tab" data-tab="rincian" onclick="switchTab('rincian')">Rincian Harian</button>
         <button class="tab" data-tab="minyak" onclick="switchTab('minyak')">Minyak</button>
         <button class="tab" data-tab="rupa" onclick="switchTab('rupa')">Rupa-rupa</button>
+        <button class="tab" data-tab="titip" onclick="switchTab('titip')">🤝 TITIP</button>
         <button class="tab" data-tab="piutang" onclick="switchTab('piutang')">Piutang Tempo</button>
         <button class="tab" data-tab="dropping" onclick="switchTab('dropping')">Cash Dropping</button>
         <!-- Tombol tab manage disembunyikan lewat CSS, tapi tetap ada di HTML untuk logic -->
         <button class="tab" data-tab="manage" onclick="switchTab('manage')">Kelola Bulan</button>
       </div>
       <div class="header-actions">
-        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" hidden="">
+        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" hidden>
+        <button type="button" class="theme-btn" id="themeBtn" onclick="toggleTheme()" aria-label="Mode gelap / terang" title="Mode gelap / terang">🌙</button>
         <button class="menu-btn" id="menuBtn" onclick="toggleMenu(event)" aria-label="Menu">
           <span></span><span></span><span></span>
         </button>
@@ -445,7 +498,7 @@
             🗂️ Kelola Bulan
           </button>
           <button class="menu-item" onclick="exportExcelByFilter(); closeMenu();">
-            📊 Export Excel (Bulan Filter)
+            📊 Export Excel (Filter Aktif)
           </button>
           <button class="menu-item" onclick="exportAllJSON(); closeMenu();">
             ⬇️ Export Backup (JSON)
@@ -468,35 +521,14 @@
         <div class="toolbar">
           <div class="toolbar-left">
             <label style="color:var(--muted);font-size:0.85rem">Filter bulan:</label>
-            <select id="filterMonth" onchange="renderAll()" data-inited="1"><option value="all">Semua Bulan</option><option value="2026-10">Oktober 2026</option></select>
+            <select id="filterMonth" onchange="renderAll()"><option value="all">Semua Bulan</option></select>
           </div>
           <div class="toolbar-right">
-            <span id="dayCount" style="color:var(--muted);font-size:0.85rem">27 hari aktif</span>
+            <span id="dayCount" style="color:var(--muted);font-size:0.85rem"></span>
           </div>
         </div>
 
-        <div class="cards" id="summaryCards">
-        <div class="card minyak">
-          <div class="card-label">Total Minyak</div>
-          <div class="card-value">Rp 624.554.600</div>
-          <div class="card-sub">Cash 529.510.700 · TF 95.043.900</div>
-        </div>
-        <div class="card rupa">
-          <div class="card-label">Total Rupa-rupa</div>
-          <div class="card-value">Rp 151.205.632</div>
-          <div class="card-sub">Cash 144.668.822 · TF 6.536.810</div>
-        </div>
-        <div class="card cash">
-          <div class="card-label">Total Cash</div>
-          <div class="card-value">Rp 674.179.522</div>
-          <div class="card-sub">Minyak + Rupa (tunai)</div>
-        </div>
-        <div class="card total">
-          <div class="card-label">Grand Total</div>
-          <div class="card-value">Rp 775.760.232</div>
-          <div class="card-sub">Minyak 80.5% · Rupa 19.5%</div>
-        </div>
-      </div>
+        <div class="cards" id="summaryCards"></div>
 
         <div class="section-title">📈 Ringkasan per Bulan</div>
         <div class="table-wrap" style="max-height:320px">
@@ -514,17 +546,7 @@
                 <th>Grand Total</th>
               </tr>
             </thead>
-            <tbody id="monthSummaryBody"><tr>
-          <td class="text-left">Oktober 2026</td>
-          <td class="center">27</td>
-          <td>529.510.700</td>
-          <td>95.043.900</td>
-          <td><strong>624.554.600</strong></td>
-          <td>144.668.822</td>
-          <td>6.536.810</td>
-          <td><strong>151.205.632</strong></td>
-          <td><strong>775.760.232</strong></td>
-        </tr></tbody>
+            <tbody id="monthSummaryBody"></tbody>
           </table>
         </div>
       </div>
@@ -533,7 +555,7 @@
     <div id="tab-detail" style="display: block;">
       <div class="toolbar">
         <div class="toolbar-left">
-          <select id="detailMonth" onchange="(async()=>{closeRincian(); await ensureMonthLoaded(this.value); renderDetail();})()"><option value="2026-10">Oktober 2026</option></select>
+          <select id="detailMonth" onchange="(async()=>{closeRincian(); await ensureMonthLoaded(this.value); renderDetail();})()"><option value="">—</option></select>
           <input type="search" id="searchDetail" placeholder="Cari tanggal...">
         </div>
         <div class="toolbar-right">
@@ -557,336 +579,7 @@
               <th>Grand Total</th>
             </tr>
           </thead>
-          <tbody id="detailBody"><tr class="day-row" onclick="openRincian('2026-10','01-10')">
-          <td class="center">1</td>
-          <td class="text-left">01-10 <span style="opacity:0.5">📋</span></td>
-          <td>15.267.500</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>15.267.500</strong></td>
-          <td>4.397.652</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>4.397.652</strong></td>
-          <td>19.665.152</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>19.665.152</strong></td>
-        </tr><tr class="day-row" onclick="openRincian('2026-10','02-10')">
-          <td class="center">2</td>
-          <td class="text-left">02-10 <span style="opacity:0.5">📋</span></td>
-          <td>17.089.500</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>17.089.500</strong></td>
-          <td>1.622.611</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>1.622.611</strong></td>
-          <td>18.712.111</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>18.712.111</strong></td>
-        </tr><tr class="day-row" onclick="openRincian('2026-10','03-10')">
-          <td class="center">3</td>
-          <td class="text-left">03-10 <span style="opacity:0.5">📋</span></td>
-          <td>24.444.200</td>
-          <td>1.461.700</td>
-          <td><strong>25.905.900</strong></td>
-          <td>7.721.562</td>
-          <td>310.346</td>
-          <td><strong>8.031.908</strong></td>
-          <td>32.165.762</td>
-          <td>1.772.046</td>
-          <td><strong>33.937.808</strong></td>
-        </tr><tr class="day-row" onclick="openRincian('2026-10','05-10')">
-          <td class="center">4</td>
-          <td class="text-left">05-10 <span style="opacity:0.5">📋</span></td>
-          <td>16.641.200</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>16.641.200</strong></td>
-          <td>7.165.884</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>7.165.884</strong></td>
-          <td>23.807.084</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>23.807.084</strong></td>
-        </tr><tr class="day-row" onclick="openRincian('2026-10','06-10')">
-          <td class="center">5</td>
-          <td class="text-left">06-10 <span style="opacity:0.5">📋</span></td>
-          <td>24.008.800</td>
-          <td>1.611.500</td>
-          <td><strong>25.620.300</strong></td>
-          <td>2.954.136</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>2.954.136</strong></td>
-          <td>26.962.936</td>
-          <td>1.611.500</td>
-          <td><strong>28.574.436</strong></td>
-        </tr><tr class="day-row" onclick="openRincian('2026-10','07-10')">
-          <td class="center">6</td>
-          <td class="text-left">07-10 <span style="opacity:0.5">📋</span></td>
-          <td>20.923.900</td>
-          <td>636.300</td>
-          <td><strong>21.560.200</strong></td>
-          <td>3.503.228</td>
-          <td>428.796</td>
-          <td><strong>3.932.024</strong></td>
-          <td>24.427.128</td>
-          <td>1.065.096</td>
-          <td><strong>25.492.224</strong></td>
-        </tr><tr class="day-row" onclick="openRincian('2026-10','08-10')">
-          <td class="center">7</td>
-          <td class="text-left">08-10 <span style="opacity:0.5">📋</span></td>
-          <td>19.406.200</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>19.406.200</strong></td>
-          <td>6.805.429</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>6.805.429</strong></td>
-          <td>26.211.629</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>26.211.629</strong></td>
-        </tr><tr class="day-row" onclick="openRincian('2026-10','09-10')">
-          <td class="center">8</td>
-          <td class="text-left">09-10 <span style="opacity:0.5">📋</span></td>
-          <td>20.258.400</td>
-          <td>437.800</td>
-          <td><strong>20.696.200</strong></td>
-          <td>3.070.006</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>3.070.006</strong></td>
-          <td>23.328.406</td>
-          <td>437.800</td>
-          <td><strong>23.766.206</strong></td>
-        </tr><tr class="day-row" onclick="openRincian('2026-10','10-10')">
-          <td class="center">9</td>
-          <td class="text-left">10-10 <span style="opacity:0.5">📋</span></td>
-          <td>17.693.200</td>
-          <td>9.251.600</td>
-          <td><strong>26.944.800</strong></td>
-          <td>3.612.146</td>
-          <td>3.052.800</td>
-          <td><strong>6.664.946</strong></td>
-          <td>21.305.346</td>
-          <td>12.304.400</td>
-          <td><strong>33.609.746</strong></td>
-        </tr><tr class="day-row" onclick="openRincian('2026-10','12-10')">
-          <td class="center">10</td>
-          <td class="text-left">12-10 <span style="opacity:0.5">📋</span></td>
-          <td>22.732.100</td>
-          <td>1.520.900</td>
-          <td><strong>24.253.000</strong></td>
-          <td>7.957.732</td>
-          <td>261.000</td>
-          <td><strong>8.218.732</strong></td>
-          <td>30.689.832</td>
-          <td>1.781.900</td>
-          <td><strong>32.471.732</strong></td>
-        </tr><tr class="day-row" onclick="openRincian('2026-10','13-10')">
-          <td class="center">11</td>
-          <td class="text-left">13-10 <span style="opacity:0.5">📋</span></td>
-          <td>28.560.800</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>28.560.800</strong></td>
-          <td>4.526.342</td>
-          <td>435.000</td>
-          <td><strong>4.961.342</strong></td>
-          <td>33.087.142</td>
-          <td>435.000</td>
-          <td><strong>33.522.142</strong></td>
-        </tr><tr class="day-row" onclick="openRincian('2026-10','14-10')">
-          <td class="center">12</td>
-          <td class="text-left">14-10 <span style="opacity:0.5">📋</span></td>
-          <td>16.065.900</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>16.065.900</strong></td>
-          <td>5.812.673</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>5.812.673</strong></td>
-          <td>21.878.573</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>21.878.573</strong></td>
-        </tr><tr class="day-row" onclick="openRincian('2026-10','15-10')">
-          <td class="center">13</td>
-          <td class="text-left">15-10 <span style="opacity:0.5">📋</span></td>
-          <td>13.879.400</td>
-          <td>44.917.500</td>
-          <td><strong>58.796.900</strong></td>
-          <td>6.313.384</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>6.313.384</strong></td>
-          <td>20.192.784</td>
-          <td>44.917.500</td>
-          <td><strong>65.110.284</strong></td>
-        </tr><tr class="day-row" onclick="openRincian('2026-10','16-10')">
-          <td class="center">14</td>
-          <td class="text-left">16-10 <span style="opacity:0.5">📋</span></td>
-          <td>14.968.100</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>14.968.100</strong></td>
-          <td>6.496.246</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>6.496.246</strong></td>
-          <td>21.464.346</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>21.464.346</strong></td>
-        </tr><tr class="day-row" onclick="openRincian('2026-10','17-10')">
-          <td class="center">15</td>
-          <td class="text-left">17-10 <span style="opacity:0.5">📋</span></td>
-          <td>24.226.600</td>
-          <td>5.302.600</td>
-          <td><strong>29.529.200</strong></td>
-          <td>4.100.019</td>
-          <td>68.556</td>
-          <td><strong>4.168.575</strong></td>
-          <td>28.326.619</td>
-          <td>5.371.156</td>
-          <td><strong>33.697.775</strong></td>
-        </tr><tr class="day-row" onclick="openRincian('2026-10','19-10')">
-          <td class="center">16</td>
-          <td class="text-left">19-10 <span style="opacity:0.5">📋</span></td>
-          <td>31.226.700</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>31.226.700</strong></td>
-          <td>3.629.442</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>3.629.442</strong></td>
-          <td>34.856.142</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>34.856.142</strong></td>
-        </tr><tr class="day-row" onclick="openRincian('2026-10','20-10')">
-          <td class="center">17</td>
-          <td class="text-left">20-10 <span style="opacity:0.5">📋</span></td>
-          <td>22.749.100</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>22.749.100</strong></td>
-          <td>3.026.782</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>3.026.782</strong></td>
-          <td>25.775.882</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>25.775.882</strong></td>
-        </tr><tr class="day-row" onclick="openRincian('2026-10','21-10')">
-          <td class="center">18</td>
-          <td class="text-left">21-10 <span style="opacity:0.5">📋</span></td>
-          <td>18.038.500</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>18.038.500</strong></td>
-          <td>2.356.462</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>2.356.462</strong></td>
-          <td>20.394.962</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>20.394.962</strong></td>
-        </tr><tr class="day-row" onclick="openRincian('2026-10','22-10')">
-          <td class="center">19</td>
-          <td class="text-left">22-10 <span style="opacity:0.5">📋</span></td>
-          <td>12.483.000</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>12.483.000</strong></td>
-          <td>5.447.066</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>5.447.066</strong></td>
-          <td>17.930.066</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>17.930.066</strong></td>
-        </tr><tr class="day-row" onclick="openRincian('2026-10','23-10')">
-          <td class="center">20</td>
-          <td class="text-left">23-10 <span style="opacity:0.5">📋</span></td>
-          <td>14.959.100</td>
-          <td>4.310.300</td>
-          <td><strong>19.269.400</strong></td>
-          <td>2.485.966</td>
-          <td>1.769.112</td>
-          <td><strong>4.255.078</strong></td>
-          <td>17.445.066</td>
-          <td>6.079.412</td>
-          <td><strong>23.524.478</strong></td>
-        </tr><tr class="day-row" onclick="openRincian('2026-10','24-10')">
-          <td class="center">21</td>
-          <td class="text-left">24-10 <span style="opacity:0.5">📋</span></td>
-          <td>17.007.500</td>
-          <td>3.619.700</td>
-          <td><strong>20.627.200</strong></td>
-          <td>3.408.245</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>3.408.245</strong></td>
-          <td>20.415.745</td>
-          <td>3.619.700</td>
-          <td><strong>24.035.445</strong></td>
-        </tr><tr class="day-row" onclick="openRincian('2026-10','26-10')">
-          <td class="center">22</td>
-          <td class="text-left">26-10 <span style="opacity:0.5">📋</span></td>
-          <td>16.343.800</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>16.343.800</strong></td>
-          <td>8.768.450</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>8.768.450</strong></td>
-          <td>25.112.250</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>25.112.250</strong></td>
-        </tr><tr class="day-row" onclick="openRincian('2026-10','27-10')">
-          <td class="center">23</td>
-          <td class="text-left">27-10 <span style="opacity:0.5">📋</span></td>
-          <td>14.185.700</td>
-          <td>19.950.000</td>
-          <td><strong>34.135.700</strong></td>
-          <td>9.471.440</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>9.471.440</strong></td>
-          <td>23.657.140</td>
-          <td>19.950.000</td>
-          <td><strong>43.607.140</strong></td>
-        </tr><tr class="day-row" onclick="openRincian('2026-10','28-10')">
-          <td class="center">24</td>
-          <td class="text-left">28-10 <span style="opacity:0.5">📋</span></td>
-          <td>14.207.900</td>
-          <td>963.500</td>
-          <td><strong>15.171.400</strong></td>
-          <td>5.742.346</td>
-          <td>211.200</td>
-          <td><strong>5.953.546</strong></td>
-          <td>19.950.246</td>
-          <td>1.174.700</td>
-          <td><strong>21.124.946</strong></td>
-        </tr><tr class="day-row" onclick="openRincian('2026-10','29-10')">
-          <td class="center">25</td>
-          <td class="text-left">29-10 <span style="opacity:0.5">📋</span></td>
-          <td>10.213.000</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>10.213.000</strong></td>
-          <td>4.015.348</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>4.015.348</strong></td>
-          <td>14.228.348</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>14.228.348</strong></td>
-        </tr><tr class="day-row" onclick="openRincian('2026-10','30-10')">
-          <td class="center">26</td>
-          <td class="text-left">30-10 <span style="opacity:0.5">📋</span></td>
-          <td>28.648.500</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>28.648.500</strong></td>
-          <td>14.217.746</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>14.217.746</strong></td>
-          <td>42.866.246</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>42.866.246</strong></td>
-        </tr><tr class="day-row" onclick="openRincian('2026-10','31-10')">
-          <td class="center">27</td>
-          <td class="text-left">31-10 <span style="opacity:0.5">📋</span></td>
-          <td>33.282.100</td>
-          <td>1.060.500</td>
-          <td><strong>34.342.600</strong></td>
-          <td>6.040.479</td>
-          <td><span class="faded">0</span></td>
-          <td><strong>6.040.479</strong></td>
-          <td>39.322.579</td>
-          <td>1.060.500</td>
-          <td><strong>40.383.079</strong></td>
-        </tr><tr class="total-row">
-        <td></td><td class="text-left">TOTAL</td>
-        <td>529.510.700</td><td>95.043.900</td><td>624.554.600</td>
-        <td>144.668.822</td><td>6.536.810</td><td>151.205.632</td>
-        <td>674.179.522</td><td>101.580.710</td><td>775.760.232</td>
-      </tr></tbody>
+          <tbody id="detailBody"></tbody>
         </table>
       </div>
       <div id="rincianPanel" class="rincian-panel" style="display:none">
@@ -925,8 +618,8 @@
     <div id="tab-rincian" style="display: none;">
       <div class="toolbar">
         <div class="toolbar-left">
-          <select id="rincianMonth" onchange="(async()=>{await ensureMonthLoaded(this.value); pagState.rincian.page=1; renderRincianTab()})()"><option value="2026-10">Oktober 2026</option></select>
-          <select id="rincianDate" onchange="pagState.rincian.page=1; renderRincianTab()"><option value="all">Semua Tanggal</option><option value="01-10">01-10</option><option value="02-10">02-10</option><option value="03-10">03-10</option><option value="05-10">05-10</option><option value="06-10">06-10</option><option value="07-10">07-10</option><option value="08-10">08-10</option><option value="09-10">09-10</option><option value="10-10">10-10</option><option value="12-10">12-10</option><option value="13-10">13-10</option><option value="14-10">14-10</option><option value="15-10">15-10</option><option value="16-10">16-10</option><option value="17-10">17-10</option><option value="19-10">19-10</option><option value="20-10">20-10</option><option value="21-10">21-10</option><option value="22-10">22-10</option><option value="23-10">23-10</option><option value="24-10">24-10</option><option value="26-10">26-10</option><option value="27-10">27-10</option><option value="28-10">28-10</option><option value="29-10">29-10</option><option value="30-10">30-10</option><option value="31-10">31-10</option></select>
+          <select id="rincianMonth" onchange="(async()=>{const v=this.value; if(v==='all'){for(const k of monthKeys()) await ensureMonthLoaded(k);} else {await ensureMonthLoaded(v);} pagState.rincian.page=1; renderRincianTab();})()"><option value="all">Semua Bulan</option></select>
+          <select id="rincianDate" onchange="pagState.rincian.page=1; renderRincianTab()"><option value="all">Semua Tanggal</option></select>
           <input type="search" id="searchRincian" placeholder="Cari toko, faktur, sales..." style="min-width:180px">
         </div>
         <div class="toolbar-right">
@@ -943,16 +636,7 @@
           </div>
         </div>
       </div>
-      <div id="rincianSummary" class="cards" style="margin-bottom:14px">
-          <div class="card minyak"><div class="card-label">Minyak</div><div class="card-value">Rp 626.166.100</div>
-            <div class="card-sub">Cash 529.510.700 · TF 96.655.400</div></div>
-          <div class="card rupa"><div class="card-label">Rupa-rupa</div><div class="card-value">Rp 151.205.632</div>
-            <div class="card-sub">Cash 144.668.822 · TF 6.536.810</div></div>
-          <div class="card cash"><div class="card-label">Jumlah Faktur</div><div class="card-value">1253</div>
-            <div class="card-sub">Tagihan Rp 859.815.916</div></div>
-          <div class="card total"><div class="card-label">Grand Total Bayar</div><div class="card-value">Rp 777.371.732</div>
-            <div class="card-sub">Minyak + Rupa</div></div></div>
-      <div class="table-wrap" style="height: calc(100vh - 310px); min-height: 400px;">
+      <div class="table-wrap" style="height: calc(100vh - 230px); min-height: 400px;">
         <table>
           <thead>
             <tr>
@@ -971,1423 +655,17 @@
               <th class="text-left">Section</th>
             </tr>
           </thead>
-          <tbody id="rincianTabBody"><tr>
-        <td class="center">1</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900141</td>
-        <td class="text-left">TOKO PARTIN</td>
-        <td class="text-left">BANYURATA</td>
-        <td>575.500</td>
-        <td>575.500</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">2</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900844</td>
-        <td class="text-left">TOKO AGUS</td>
-        <td class="text-left">BRECONG</td>
-        <td>560.500</td>
-        <td>560.500</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">3</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900645</td>
-        <td class="text-left">TOKO SUMBER ABADI</td>
-        <td class="text-left">AMBAL</td>
-        <td>1.060.500</td>
-        <td>1.060.500</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">4</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900646</td>
-        <td class="text-left">TOKO TRI ERWIN</td>
-        <td class="text-left">PASAR SENEN AMBAL</td>
-        <td>329.900</td>
-        <td>329.900</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">5</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900653</td>
-        <td class="text-left">TOKO PENO</td>
-        <td class="text-left">ENTAK 2/1</td>
-        <td>589.000</td>
-        <td>589.000</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">6</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900655</td>
-        <td class="text-left">TOKO ARNI</td>
-        <td class="text-left">PASAR THENGOK</td>
-        <td>589.000</td>
-        <td>589.000</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">7</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260800844</td>
-        <td class="text-left">TOKO CAKRA</td>
-        <td class="text-left">SRUNI</td>
-        <td>300.000</td>
-        <td>300.000</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">8</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900642</td>
-        <td class="text-left">TOKO AGUS</td>
-        <td class="text-left">BRECONG</td>
-        <td>258.336</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td>258.336</td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">9</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900647</td>
-        <td class="text-left">TOKO TRI ERWIN</td>
-        <td class="text-left">PASAR SENEN AMBAL</td>
-        <td>141.160</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td>141.160</td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">10</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900669</td>
-        <td class="text-left">TOKO ARNI</td>
-        <td class="text-left">PASAR THENGOK</td>
-        <td>1.185.000</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td>1.185.000</td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">11</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900104</td>
-        <td class="text-left">TOKO BU SITI</td>
-        <td class="text-left">ADITIRTO</td>
-        <td>555.900</td>
-        <td>555.900</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">12</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-titip">TITIP</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900143</td>
-        <td class="text-left">TOKO WIJI</td>
-        <td class="text-left">BANYURATA</td>
-        <td>1.053.000</td>
-        <td>353.000</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">13</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900155</td>
-        <td class="text-left">PI MART</td>
-        <td class="text-left">KARANGANYAR</td>
-        <td>977.100</td>
-        <td>977.100</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">14</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900466</td>
-        <td class="text-left">TOKO SRC WIWI</td>
-        <td class="text-left">KEMIT</td>
-        <td>424.200</td>
-        <td>424.200</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">15</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900672</td>
-        <td class="text-left">TOKO AGUS SETIAWAN</td>
-        <td class="text-left">BULUHPAYUNG</td>
-        <td>327.200</td>
-        <td>327.200</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">16</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900674</td>
-        <td class="text-left">TANTE DHEPY</td>
-        <td class="text-left">CARUBAN</td>
-        <td>117.800</td>
-        <td>117.800</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">17</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900675</td>
-        <td class="text-left">TOKO ROTO</td>
-        <td class="text-left">CARUBAN</td>
-        <td>232.900</td>
-        <td>232.900</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">18</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-titip">TITIP</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900677</td>
-        <td class="text-left">TOKO HARTONO 3</td>
-        <td class="text-left">TEROK/KEMUJAN</td>
-        <td>3.529.500</td>
-        <td>1.000.000</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">19</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-titip">TITIP</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900680</td>
-        <td class="text-left">TOKO PUAS MART</td>
-        <td class="text-left">SUGIHWARAS</td>
-        <td>657.100</td>
-        <td>157.100</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">20</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900685</td>
-        <td class="text-left">MEVA CELL</td>
-        <td class="text-left">WAJASARI</td>
-        <td>424.200</td>
-        <td>424.200</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">21</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900111</td>
-        <td class="text-left">TOKO BU SITI</td>
-        <td class="text-left">ADITIRTO</td>
-        <td>71.964</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td>71.964</td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">22</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900676</td>
-        <td class="text-left">TANTE DHEPY</td>
-        <td class="text-left">CARUBAN</td>
-        <td>85.395</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td>85.395</td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">23</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900679</td>
-        <td class="text-left">TOKO HARTONO 3</td>
-        <td class="text-left">TEROK/KEMUJAN</td>
-        <td>329.000</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td>329.000</td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">24</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900681</td>
-        <td class="text-left">TOKO PUAS MART</td>
-        <td class="text-left">SUGIHWARAS</td>
-        <td>144.600</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td>144.600</td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">25</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">HAFID</td>
-        <td class="text-left">011003260900169</td>
-        <td class="text-left">TOKO BANON JAYA</td>
-        <td class="text-left">SIDOARUM</td>
-        <td>342.400</td>
-        <td>342.400</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">26</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">HAFID</td>
-        <td class="text-left">011003260900620</td>
-        <td class="text-left">TOKO 99 A MART</td>
-        <td class="text-left">JL LAUT BOPONG</td>
-        <td>100.000</td>
-        <td>100.000</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">27</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">HAFID</td>
-        <td class="text-left">011003260900688</td>
-        <td class="text-left">TOKO ASRORI</td>
-        <td class="text-left">JL POTONGAN</td>
-        <td>212.100</td>
-        <td>212.100</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">28</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">HAFID</td>
-        <td class="text-left">011003260900689</td>
-        <td class="text-left">TOKO NANANG</td>
-        <td class="text-left">JL POTONGAN</td>
-        <td>235.600</td>
-        <td>235.600</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">29</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">HAFID</td>
-        <td class="text-left">011003260900691</td>
-        <td class="text-left">TOKO NARTI</td>
-        <td class="text-left">PASAR GOMBONG</td>
-        <td>424.200</td>
-        <td>424.200</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">30</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-titip">TITIP</span></td>
-        <td class="text-left">HAFID</td>
-        <td class="text-left">011003260900692</td>
-        <td class="text-left">TOKO SYUKUR</td>
-        <td class="text-left">PASAR GOMBONG</td>
-        <td>580.900</td>
-        <td>300.000</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">31</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">HAFID</td>
-        <td class="text-left">011003260900695</td>
-        <td class="text-left">TOKO SOLEH MARWANTO</td>
-        <td class="text-left">PASAR GOMBONG</td>
-        <td>329.900</td>
-        <td>329.900</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">32</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">HAFID</td>
-        <td class="text-left">011003260900698</td>
-        <td class="text-left">TOKO UCOK</td>
-        <td class="text-left">GG SINDORO</td>
-        <td>342.780</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td>342.780</td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">33</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">HAFID</td>
-        <td class="text-left">011003260900701</td>
-        <td class="text-left">TOKO ASRORI</td>
-        <td class="text-left">JL POTONGAN</td>
-        <td>1.134.600</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td>1.134.600</td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">34</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">PAK ITO(HAFID)</td>
-        <td class="text-left">011003261000025</td>
-        <td class="text-left">TOKO NASWA</td>
-        <td class="text-left">PASAR KUWARASAN</td>
-        <td>3.212.000</td>
-        <td>3.212.000</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Dropping</td>
-      </tr><tr>
-        <td class="center">35</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">PAK ITO(JOSSY)</td>
-        <td class="text-left">011003261000020</td>
-        <td class="text-left">TK PADANG MARINHEIRO</td>
-        <td class="text-left">ADITIRTO</td>
-        <td>226.317</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td>226.317</td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Dropping</td>
-      </tr><tr>
-        <td class="center">36</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-titip">TITIP</span></td>
-        <td class="text-left">PAK ITO(HAFID)</td>
-        <td class="text-left">011003261000039</td>
-        <td class="text-left">TOKO SARIYAH</td>
-        <td class="text-left">PASAR PURWAGANDA</td>
-        <td>1.060.500</td>
-        <td>500.000</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Dropping</td>
-      </tr><tr>
-        <td class="center">37</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">ALIM(JOSSY)</td>
-        <td class="text-left">01100326100016</td>
-        <td class="text-left">TOKO YATI</td>
-        <td class="text-left">PASAR TENGOK</td>
-        <td>1.037.500</td>
-        <td>1.037.500</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Dropping</td>
-      </tr><tr>
-        <td class="center">38</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">ALIM(RAJU)</td>
-        <td class="text-left">01100326100035</td>
-        <td class="text-left">TOKO TRI REJEKI</td>
-        <td class="text-left">PASAR SENIN</td>
-        <td>261.000</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td>261.000</td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Dropping</td>
-      </tr><tr>
-        <td class="center">39</td>
-        <td class="text-left">01-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">ALIM(RAJU)</td>
-        <td class="text-left">01100326100036</td>
-        <td class="text-left">TOKO 60 (ENAM PULUH)</td>
-        <td class="text-left">PASAR KUTOWINANGUN</td>
-        <td>217.500</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td>217.500</td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Dropping</td>
-      </tr><tr>
-        <td class="center">40</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900176</td>
-        <td class="text-left">TOKO YANTI</td>
-        <td class="text-left">BULUSPESANTREN</td>
-        <td>351.400</td>
-        <td>351.400</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">41</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-titip">TITIP</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900317</td>
-        <td class="text-left">TOKO SRC GUN</td>
-        <td class="text-left">AYAM PUTIH</td>
-        <td>210.600</td>
-        <td>100.000</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">42</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900706</td>
-        <td class="text-left">TOKO ARETTA</td>
-        <td class="text-left">BOCOR 2/5</td>
-        <td>230.200</td>
-        <td>230.200</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">43</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900707</td>
-        <td class="text-left">TOKO ENDAH</td>
-        <td class="text-left">SETROJENAR</td>
-        <td>424.200</td>
-        <td>424.200</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">44</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900711</td>
-        <td class="text-left">TOKO KURNIA CELL</td>
-        <td class="text-left">BULUSPESANTREN</td>
-        <td>329.900</td>
-        <td>329.900</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">45</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900715</td>
-        <td class="text-left">TOKO ELOK</td>
-        <td class="text-left">WALUYO</td>
-        <td>249.804</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td>249.804</td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">46</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900718</td>
-        <td class="text-left">TOKO SUKRON</td>
-        <td class="text-left">AYAM PUTIH</td>
-        <td>87.000</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td>87.000</td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">47</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900719</td>
-        <td class="text-left">TOKO CITRA JAYA</td>
-        <td class="text-left">BOCOR</td>
-        <td>478.500</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td>478.500</td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">48</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900143</td>
-        <td class="text-left">TOKO WIJI</td>
-        <td class="text-left">BANYURATA</td>
-        <td>700.000</td>
-        <td>700.000</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">49</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900153</td>
-        <td class="text-left">TOKO AMAN MAKMUR</td>
-        <td class="text-left">WAJASARI</td>
-        <td>421.200</td>
-        <td>421.200</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">50</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900181</td>
-        <td class="text-left">TOKO NASIHA</td>
-        <td class="text-left">PASAR GAMBLOK</td>
-        <td>421.200</td>
-        <td>421.200</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">51</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-titip">TITIP</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900185</td>
-        <td class="text-left">TOKO UMI</td>
-        <td class="text-left">PASAR WEDI</td>
-        <td>210.600</td>
-        <td>50.000</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">52</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900599</td>
-        <td class="text-left">TOKO IDAMAN</td>
-        <td class="text-left">PASAR DOROWATI</td>
-        <td>465.800</td>
-        <td>465.800</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">53</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900720</td>
-        <td class="text-left">TOKO CAHAYA</td>
-        <td class="text-left">PASAR GAMBLOK</td>
-        <td>212.100</td>
-        <td>212.100</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">54</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900722</td>
-        <td class="text-left">TOKO TASNIM MART</td>
-        <td class="text-left">TANJUNGSARI</td>
-        <td>117.800</td>
-        <td>117.800</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">55</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900723</td>
-        <td class="text-left">TOKO DIDI</td>
-        <td class="text-left">TANJUNGSARI</td>
-        <td>327.200</td>
-        <td>327.200</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">56</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900724</td>
-        <td class="text-left">TOKO ULFAH</td>
-        <td class="text-left">JOGOMERTAN</td>
-        <td>212.100</td>
-        <td>212.100</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">57</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900726</td>
-        <td class="text-left">TOKO SANG BARU</td>
-        <td class="text-left">KLIRONG</td>
-        <td>654.400</td>
-        <td>654.400</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">58</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900728</td>
-        <td class="text-left">TOKO SULIS/NOVI</td>
-        <td class="text-left">TANJUNGSARI</td>
-        <td>327.200</td>
-        <td>327.200</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">59</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900600</td>
-        <td class="text-left">TOKO IDAMAN</td>
-        <td class="text-left">PASAR DOROWATI</td>
-        <td>197.391</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td>197.391</td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">60</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900729</td>
-        <td class="text-left">TOKO ULFAH</td>
-        <td class="text-left">JOGOMERTAN</td>
-        <td>152.752</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td>152.752</td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">61</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900733</td>
-        <td class="text-left">TOKO SAYOTO</td>
-        <td class="text-left">PASAR WEDI</td>
-        <td>174.000</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td>174.000</td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">62</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">HAFID</td>
-        <td class="text-left">011003260900692</td>
-        <td class="text-left">TOKO SYUKUR</td>
-        <td class="text-left">PASAR GOMBONG</td>
-        <td>280.900</td>
-        <td>280.900</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">63</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">HAFID</td>
-        <td class="text-left">011003260900690</td>
-        <td class="text-left">HANDOYO MART</td>
-        <td class="text-left">PASAR GOMBONG</td>
-        <td>654.400</td>
-        <td>654.400</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">64</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">HAFID</td>
-        <td class="text-left">011003260900736</td>
-        <td class="text-left">CANTIKA CELL</td>
-        <td class="text-left">PANJANGSARI</td>
-        <td>424.200</td>
-        <td>424.200</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">65</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">HAFID</td>
-        <td class="text-left">011003260900737</td>
-        <td class="text-left">TOKO LISMA JAYA</td>
-        <td class="text-left">PANJANGSARI</td>
-        <td>327.200</td>
-        <td>327.200</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">66</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">HAFID</td>
-        <td class="text-left">011003260900742</td>
-        <td class="text-left">TOKO AYU</td>
-        <td class="text-left">PEKUNCEN</td>
-        <td>327.200</td>
-        <td>327.200</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">67</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">HAFID</td>
-        <td class="text-left">011003260900743</td>
-        <td class="text-left">TOKO AL BAROKAH</td>
-        <td class="text-left">PEKUNCEN</td>
-        <td>424.200</td>
-        <td>424.200</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">68</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">HAFID</td>
-        <td class="text-left">011003260900745</td>
-        <td class="text-left">TOKO LKA</td>
-        <td class="text-left">PASAR KENTENG</td>
-        <td>327.200</td>
-        <td>327.200</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">69</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">HAFID</td>
-        <td class="text-left">011003260900747</td>
-        <td class="text-left">TOKO AISYAH</td>
-        <td class="text-left">PASAR KENTENG</td>
-        <td>212.100</td>
-        <td>212.100</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">70</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">HAFID</td>
-        <td class="text-left">011003260900746</td>
-        <td class="text-left">RIFQY CELL</td>
-        <td class="text-left">PASAR KENTENG</td>
-        <td>424.200</td>
-        <td>424.200</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">71</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">HAFID</td>
-        <td class="text-left">011003260900751</td>
-        <td class="text-left">TOKO LKA</td>
-        <td class="text-left">PASAR KENTENG</td>
-        <td>71.964</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td>71.964</td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">72</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">HAFID</td>
-        <td class="text-left">011003260900754</td>
-        <td class="text-left">TOKO AISYAH</td>
-        <td class="text-left">PASAR KENTENG</td>
-        <td>105.600</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td>105.600</td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">73</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">HAFID</td>
-        <td class="text-left">011003260900753</td>
-        <td class="text-left">RIFQY CELL</td>
-        <td class="text-left">PASAR KENTENG</td>
-        <td>105.600</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td>105.600</td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">74</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">ZEIN(HAFID)</td>
-        <td class="text-left">011003261000046</td>
-        <td class="text-left">TOKO NARTI</td>
-        <td class="text-left">PASAR GOMBONG</td>
-        <td>1.037.500</td>
-        <td>1.037.500</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Dropping</td>
-      </tr><tr>
-        <td class="center">75</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">ZEIN(HAFID)</td>
-        <td class="text-left">011003261000048</td>
-        <td class="text-left">TOKO BU JANNAH</td>
-        <td class="text-left">PASAR GOMBONG</td>
-        <td>563.000</td>
-        <td>563.000</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Dropping</td>
-      </tr><tr>
-        <td class="center">76</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">ZEIN(HAFID)</td>
-        <td class="text-left">011003260100049</td>
-        <td class="text-left">TOKO SULIS</td>
-        <td class="text-left">PASAR GOMBONG</td>
-        <td>574.000</td>
-        <td>574.000</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Dropping</td>
-      </tr><tr>
-        <td class="center">77</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">ZEIN(HAFID)</td>
-        <td class="text-left">011003261000051</td>
-        <td class="text-left">TOKO UCOK</td>
-        <td class="text-left">GG SINDORO</td>
-        <td>1.600.500</td>
-        <td>1.600.500</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Dropping</td>
-      </tr><tr>
-        <td class="center">78</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">ZEIN(HAFID)</td>
-        <td class="text-left">011003261000052</td>
-        <td class="text-left">TOKO SHEILA</td>
-        <td class="text-left">GOMBONG</td>
-        <td>1.037.500</td>
-        <td>1.037.500</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Dropping</td>
-      </tr><tr>
-        <td class="center">79</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">ALIM(JOSSY)</td>
-        <td class="text-left">011003261000061</td>
-        <td class="text-left">BU JOKO 2</td>
-        <td class="text-left">SUGIHWARAS</td>
-        <td>1.037.500</td>
-        <td>1.037.500</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Dropping</td>
-      </tr><tr>
-        <td class="center">80</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">ALIM(JOSSY)</td>
-        <td class="text-left">011003261000064</td>
-        <td class="text-left">SINAR BAROKAH</td>
-        <td class="text-left">WAJASARI</td>
-        <td>2.075.000</td>
-        <td>2.075.000</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Dropping</td>
-      </tr><tr>
-        <td class="center">81</td>
-        <td class="text-left">02-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">ALIM(RAJU)</td>
-        <td class="text-left">011003261000070</td>
-        <td class="text-left">TOKO PM MART</td>
-        <td class="text-left">JL INDRAKILA</td>
-        <td>418.200</td>
-        <td>418.200</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Dropping</td>
-      </tr><tr>
-        <td class="center">82</td>
-        <td class="text-left">03-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900193</td>
-        <td class="text-left">TOKO KIOS PATRA</td>
-        <td class="text-left">WALUYO</td>
-        <td>1.053.000</td>
-        <td>1.053.000</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">83</td>
-        <td class="text-left">03-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900317</td>
-        <td class="text-left">TOKO SRC GUN</td>
-        <td class="text-left">AYAM PUTIH</td>
-        <td>110.600</td>
-        <td>110.600</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">84</td>
-        <td class="text-left">03-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900710</td>
-        <td class="text-left">TOKO BARU JAYA</td>
-        <td class="text-left">BOCOR</td>
-        <td>1.060.500</td>
-        <td>1.060.500</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">85</td>
-        <td class="text-left">03-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900712</td>
-        <td class="text-left">TOKO SOLEHUDIN</td>
-        <td class="text-left">SANGUBANYU</td>
-        <td>539.300</td>
-        <td>539.300</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">86</td>
-        <td class="text-left">03-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900713</td>
-        <td class="text-left">TOKO MUHTAR</td>
-        <td class="text-left">SETROJENAR</td>
-        <td>1.060.500</td>
-        <td>1.060.500</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">87</td>
-        <td class="text-left">03-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900760</td>
-        <td class="text-left">TOKO SUMI</td>
-        <td class="text-left">ARGOPENI</td>
-        <td>232.900</td>
-        <td>232.900</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">88</td>
-        <td class="text-left">03-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900761</td>
-        <td class="text-left">TOKO PUTRA BARU</td>
-        <td class="text-left">KUTOWINANGUN</td>
-        <td>1.314.200</td>
-        <td>1.314.200</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">89</td>
-        <td class="text-left">03-10</td>
-        <td class="text-left"><span class="badge badge-titip">TITIP</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900762</td>
-        <td class="text-left">TOKO TRI</td>
-        <td class="text-left">TRIWARNO</td>
-        <td>539.300</td>
-        <td>200.000</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">90</td>
-        <td class="text-left">03-10</td>
-        <td class="text-left"><span class="badge badge-titip">TITIP</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900764</td>
-        <td class="text-left">TOKO SARNUN</td>
-        <td class="text-left">KABUARAN</td>
-        <td>329.900</td>
-        <td>280.000</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">91</td>
-        <td class="text-left">03-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900198</td>
-        <td class="text-left">TOKO KIOS PATRA</td>
-        <td class="text-left">WALUYO</td>
-        <td>610.322</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td>610.322</td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">92</td>
-        <td class="text-left">03-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900756</td>
-        <td class="text-left">TOKO BARU JAYA</td>
-        <td class="text-left">BOCOR</td>
-        <td>1.161.250</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td>1.161.250</td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">93</td>
-        <td class="text-left">03-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900765</td>
-        <td class="text-left">TOKO ARTHA JAYA</td>
-        <td class="text-left">PASAR KENAYAN</td>
-        <td>1.028.340</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td>1.028.340</td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">94</td>
-        <td class="text-left">03-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900766</td>
-        <td class="text-left">TOKO SUMI</td>
-        <td class="text-left">ARGOPENI</td>
-        <td>438.000</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td>438.000</td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">95</td>
-        <td class="text-left">03-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">RAJU</td>
-        <td class="text-left">011003260900767</td>
-        <td class="text-left">TOKO SRI WALUYO</td>
-        <td class="text-left">KENAYAN</td>
-        <td>360.000</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td>360.000</td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">96</td>
-        <td class="text-left">03-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900156</td>
-        <td class="text-left">PUSAKA INDAH</td>
-        <td class="text-left">KARANGANYAR</td>
-        <td>993.800</td>
-        <td>993.800</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">97</td>
-        <td class="text-left">03-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900182</td>
-        <td class="text-left">TOKO KELOR MAS</td>
-        <td class="text-left">JOGOMERTAN</td>
-        <td>210.600</td>
-        <td>210.600</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">98</td>
-        <td class="text-left">03-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900183</td>
-        <td class="text-left">TOKO KUSUMA INDAH</td>
-        <td class="text-left">JOGOMERTAN</td>
-        <td>210.600</td>
-        <td>210.600</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">99</td>
-        <td class="text-left">03-10</td>
-        <td class="text-left"><span class="badge badge-lunas">LUNAS</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900185</td>
-        <td class="text-left">TOKO UMI</td>
-        <td class="text-left">PASAR WEDI</td>
-        <td>160.600</td>
-        <td>160.600</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr>
-        <td class="center">100</td>
-        <td class="text-left">03-10</td>
-        <td class="text-left"><span class="badge badge-titip">TITIP</span></td>
-        <td class="text-left">JOSSY</td>
-        <td class="text-left">011003260900233</td>
-        <td class="text-left">TOKO KAMISAH</td>
-        <td class="text-left">PASAR SOMA</td>
-        <td>4.000.000</td>
-        <td>1.000.000</td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td><span class="faded">0</span></td>
-        <td class="text-left">Piutang</td>
-      </tr><tr class="total-row">
-        <td></td><td class="text-left" colspan="6">TOTAL (1.253 faktur)</td>
-        <td>859.815.916</td>
-        <td>529.510.700</td><td>96.655.400</td>
-        <td>144.668.822</td><td>6.536.810</td>
-        <td></td>
-      </tr></tbody>
+          <tbody id="rincianTabBody"></tbody>
         </table>
       </div>
-      <div class="pagination" id="rincianPagination"><button disabled="" onclick="setPage('rincian', 0)">‹</button><button class="active" onclick="setPage('rincian', 1)">1</button><button class="" onclick="setPage('rincian', 2)">2</button><button class="" onclick="setPage('rincian', 3)">3</button><span style="color:var(--muted)">…</span><button onclick="setPage('rincian', 13)">13</button><button onclick="setPage('rincian', 2)">›</button><span class="info">1.253 data · hal 1/13</span></div>
+      <div class="pagination" id="rincianPagination"></div>
     </div>
 
 
     <div id="tab-minyak" style="display: none;">
       <div class="toolbar">
         <div class="toolbar-left">
-          <select id="minyakMonth" onchange="(async()=>{await ensureMonthLoaded(this.value); pagState.minyak.page=1; renderProdukTab('minyak')})()"><option value="2026-10">Oktober 2026</option></select>
+          <select id="minyakMonth" onchange="(async()=>{await ensureMonthLoaded(this.value); pagState.minyak.page=1; renderProdukTab('minyak')})()"><option value="">—</option></select>
           <select id="minyakDate" onchange="pagState.minyak.page=1; renderProdukTab('minyak')"><option value="all">Semua Tanggal</option></select>
           <input type="search" id="searchMinyak" placeholder="Cari toko, faktur, sales..." style="min-width:180px">
         </div>
@@ -2433,7 +711,7 @@
     <div id="tab-rupa" style="display: none;">
       <div class="toolbar">
         <div class="toolbar-left">
-          <select id="rupaMonth" onchange="(async()=>{await ensureMonthLoaded(this.value); pagState.rupa.page=1; renderProdukTab('rupa')})()"><option value="2026-10">Oktober 2026</option></select>
+          <select id="rupaMonth" onchange="(async()=>{await ensureMonthLoaded(this.value); pagState.rupa.page=1; renderProdukTab('rupa')})()"><option value="">—</option></select>
           <select id="rupaDate" onchange="pagState.rupa.page=1; renderProdukTab('rupa')"><option value="all">Semua Tanggal</option></select>
           <input type="search" id="searchRupa" placeholder="Cari toko, faktur, sales..." style="min-width:180px">
         </div>
@@ -2476,11 +754,65 @@
       <div class="pagination" id="rupaPagination"></div>
     </div>
 
+    <div id="tab-titip" style="display:none">
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <select id="titipMonth" onchange="loadAndRenderTitip()" aria-label="Filter bulan titip">
+            <option value="all">Semua Bulan</option>
+          </select>
+          <select id="titipDate" onchange="pagState.titip.page=1; renderTitipTab()">
+            <option value="all">Semua Tanggal</option>
+          </select>
+          <input type="search" id="searchTitip" placeholder="Cari toko, faktur, sales..." style="min-width:180px">
+        </div>
+        <div class="toolbar-right">
+          <select id="titipSection" onchange="pagState.titip.page=1; renderTitipTab()">
+            <option value="all">Semua Section</option>
+            <option value="PIUTANG">Piutang Tempo</option>
+            <option value="DROPPING">Cash Dropping</option>
+          </select>
+          <div class="filter-group" id="titipStatusGroup" aria-label="Filter status TITIP">
+            <button type="button" class="filter-btn active" data-val="all" onclick="setTitipStatusFilter('all')">Semua</button>
+            <button type="button" class="filter-btn" data-val="LUNAS" onclick="setTitipStatusFilter('LUNAS')">Lunas</button>
+            <button type="button" class="filter-btn" data-val="DIBAYAR SEBAGIAN" onclick="setTitipStatusFilter('DIBAYAR SEBAGIAN')">Dibayar Sebagian</button>
+            <button type="button" class="filter-btn" data-val="BELUM DIBAYAR" onclick="setTitipStatusFilter('BELUM DIBAYAR')">Belum Dibayar</button>
+          </div>
+        </div>
+      </div>
+      <div id="titipSummary" class="cards" style="margin-bottom:14px"></div>
+      <div class="table-wrap" style="height: calc(100vh - 310px); min-height: 400px;">
+        <table>
+          <thead><tr>
+            <th class="center">No</th>
+            <th class="text-left">Bulan</th>
+            <th class="text-left">Tgl Titip</th>
+            <th class="text-left">Ket</th>
+            <th class="text-left">No Faktur</th>
+            <th class="text-left">Nama Toko</th>
+            <th class="text-left">Alamat</th>
+            <th>Tagihan</th>
+            <th>Total Bayar Awal</th>
+            <th>Bayar Susulan</th>
+            <th>Sisa TITIP</th>
+            <th class="text-left">Status</th>
+            <th class="text-left">Sales</th>
+            <th>Minyak Cash</th>
+            <th>Minyak TF</th>
+            <th>Rupa Cash</th>
+            <th>Rupa TF</th>
+            <th class="text-left">Section</th>
+          </tr></thead>
+          <tbody id="titipBody"></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="titipPagination"></div>
+    </div>
+
     <div id="tab-piutang" style="display:none">
       <div class="toolbar">
         <div class="toolbar-left">
-          <select id="piutangMonth" onchange="(async()=>{await ensureMonthLoaded(this.value); pagState.piutang.page=1; renderPiutangTab()})()"><option value="2026-10">Oktober 2026</option></select>
-          <select id="piutangDate" onchange="pagState.piutang.page=1; renderPiutangTab()"><option value="all">Semua Tanggal</option><option value="01-10">01-10</option><option value="02-10">02-10</option><option value="03-10">03-10</option><option value="05-10">05-10</option><option value="06-10">06-10</option><option value="07-10">07-10</option><option value="08-10">08-10</option><option value="09-10">09-10</option><option value="10-10">10-10</option><option value="12-10">12-10</option><option value="13-10">13-10</option><option value="14-10">14-10</option><option value="15-10">15-10</option><option value="16-10">16-10</option><option value="17-10">17-10</option><option value="19-10">19-10</option><option value="20-10">20-10</option><option value="21-10">21-10</option><option value="22-10">22-10</option><option value="23-10">23-10</option><option value="24-10">24-10</option><option value="26-10">26-10</option><option value="27-10">27-10</option><option value="28-10">28-10</option><option value="29-10">29-10</option><option value="30-10">30-10</option><option value="31-10">31-10</option></select>
+          <select id="piutangMonth" onchange="(async()=>{await ensureMonthLoaded(this.value); pagState.piutang.page=1; renderPiutangTab()})()"><option value="">—</option></select>
+          <select id="piutangDate" onchange="pagState.piutang.page=1; renderPiutangTab()"><option value="all">Semua Tanggal</option></select>
           <input type="search" id="searchPiutang" placeholder="Cari toko, faktur, sales..." style="min-width:160px">
         </div>
         <div class="toolbar-right">
@@ -2528,8 +860,8 @@
     <div id="tab-dropping" style="display:none">
       <div class="toolbar">
         <div class="toolbar-left">
-          <select id="droppingMonth" onchange="(async()=>{await ensureMonthLoaded(this.value); pagState.dropping.page=1; renderDroppingTab()})()"><option value="2026-10">Oktober 2026</option></select>
-          <select id="droppingDate" onchange="pagState.dropping.page=1; renderDroppingTab()"><option value="all">Semua Tanggal</option><option value="01-10">01-10</option><option value="02-10">02-10</option><option value="03-10">03-10</option><option value="05-10">05-10</option><option value="06-10">06-10</option><option value="07-10">07-10</option><option value="08-10">08-10</option><option value="09-10">09-10</option><option value="10-10">10-10</option><option value="12-10">12-10</option><option value="13-10">13-10</option><option value="14-10">14-10</option><option value="15-10">15-10</option><option value="16-10">16-10</option><option value="17-10">17-10</option><option value="19-10">19-10</option><option value="20-10">20-10</option><option value="21-10">21-10</option><option value="22-10">22-10</option><option value="23-10">23-10</option><option value="24-10">24-10</option><option value="26-10">26-10</option><option value="27-10">27-10</option><option value="28-10">28-10</option><option value="29-10">29-10</option><option value="30-10">30-10</option><option value="31-10">31-10</option></select>
+          <select id="droppingMonth" onchange="(async()=>{await ensureMonthLoaded(this.value); pagState.dropping.page=1; renderDroppingTab()})()"><option value="">—</option></select>
+          <select id="droppingDate" onchange="pagState.dropping.page=1; renderDroppingTab()"><option value="all">Semua Tanggal</option></select>
           <input type="search" id="searchDropping" placeholder="Cari toko, faktur, sales..." style="min-width:160px">
         </div>
         <div class="toolbar-right">
@@ -2587,14 +919,7 @@
       <p style="color:var(--muted);font-size:0.85rem;margin-bottom:12px">
         Centang bulan lalu klik <strong>Hapus</strong> di menu ☰, atau klik icon 🗑️ di kanan tiap bulan.
       </p>
-      <div class="month-grid" id="monthGrid"><div class="month-chip">
-          <input type="checkbox" class="month-check" value="2026-10" onchange="updateDeleteBtn()">
-          <div style="flex:1;min-width:0">
-            <div class="name">Oktober 2026</div>
-            <div class="days">27 hari · Rp 775.760.232</div>
-          </div>
-          <button class="btn-del-one" title="Hapus bulan ini" onclick="deleteOneMonth('2026-10')">🗑️</button>
-        </div></div>
+      <div class="month-grid" id="monthGrid"></div>
 
       <div style="margin-top:16px">
         <button class="btn btn-ghost btn-sm" onclick="selectAllMonths(true)">Pilih Semua</button>
@@ -2615,7 +940,7 @@
   <div class="modal-overlay" id="deleteModal">
     <div class="modal">
       <h3>Hapus bulan terpilih?</h3>
-      <p id="deleteMsg">Anda akan menghapus: Oktober 2026. Data tidak bisa dikembalikan (kecuali ada backup).</p>
+      <p id="deleteMsg">Anda akan menghapus data bulan terpilih. Data tidak bisa dikembalikan (kecuali ada backup).</p>
       <div class="modal-actions">
         <button class="btn btn-ghost" onclick="closeModal()">Batal</button>
         <button class="btn btn-danger" onclick="doDelete()">Ya, Hapus</button>
@@ -2623,7 +948,7 @@
     </div>
   </div>
 
-  <div class="toast error" id="toast">Perhatian: 1 hari punya selisih total sheet vs jumlah faktur. Lihat console untuk detail.</div>
+  <div class="toast error" id="toast"></div>
 
   <script>
     // ===================== CONSTANTS & STATE =====================
@@ -2636,12 +961,12 @@
 
     let store = {};
     let selectedDay = null;
-    let _ready = false;
 
     const pagState = {
       rincian: { page: 1, size: PAGE_SIZE },
       minyak: { page: 1, size: PAGE_SIZE },
       rupa: { page: 1, size: PAGE_SIZE },
+      titip: { page: 1, size: PAGE_SIZE },
       piutang: { page: 1, size: PAGE_SIZE },
       dropping: { page: 1, size: PAGE_SIZE },
     };
@@ -2758,14 +1083,16 @@
 
     async function ensureMonthLoaded(ym) {
       if (!ym || !store[ym]) return false;
-      // Sudah dicoba & gagal (ada di set tapi txns kosong) → jangan retry
-      if (_loadedMonths.has(ym) && !monthHasTxns(store[ym])) return false;
+      // Sudah berhasil di-load (punya txns di RAM)
       if (_loadedMonths.has(ym) && monthHasTxns(store[ym])) return true;
-      // Sudah punya txns di RAM (mis. baru upload)
+      // Sudah punya txns di RAM (mis. baru upload) — tandai loaded
       if (monthHasTxns(store[ym])) {
         _loadedMonths.add(ym);
         return true;
       }
+      // Sudah pernah dicoba sukses-tapi-kosong (metadata saja) → jangan spam IDB
+      if (_loadedMonths.has(ym)) return false;
+
       try {
         const full = await idbGet('month:' + ym);
         if (full && typeof full === 'object') {
@@ -2778,12 +1105,15 @@
             return monthHasTxns(store[ym]);
           }
         }
+        // Data tidak ada / kosong di IDB — tandai agar tidak spam
+        _loadedMonths.add(ym);
+        return false;
       } catch (e) {
         console.warn('[lazy] ensureMonthLoaded failed:', e);
+        // JANGAN tandai _loadedMonths pada error transient → boleh retry lain kali
+        toast(`Gagal memuat data bulan ${store[ym]?.label || ym}. Coba reload halaman.`, 'error');
+        return false;
       }
-      // Tandai sudah dicoba (sukses atau gagal) agar tidak spam IDB
-      _loadedMonths.add(ym);
-      return false;
     }
 
 
@@ -2888,28 +1218,25 @@
     }
 
     function _writeLocalStorageFallback() {
-      // Skip LS jika ada bulan lazy (metadata saja, belum di-load) — cegah overwrite data penuh
+      // Skip hanya bulan yang masih lazy (metadata saja, belum di-load) —
+      // jangan blokir seluruh LS write hanya karena satu bulan belum di-load
       const keys = Object.keys(store);
-      const anyStripped = keys.some(k => {
-        const days = store[k]?.days || [];
-        if (!days.length) return false;
-        // stripped = ada hari tapi semua txns kosong, padahal belum di-mark loaded
-        const noTxns = days.every(d => !d.txns || d.txns.length === 0);
-        return noTxns && !_loadedMonths.has(k);
-      });
-      if (anyStripped) {
-        console.info('[ls] skip fallback — ada bulan lazy yang belum di-load');
-        return false;
-      }
       let n = 0;
-      for (const k in store) {
-        for (const d of (store[k].days || [])) n += (d.txns?.length || 0);
+      const clean = {};
+      for (const k of keys) {
+        const days = store[k]?.days || [];
+        const noTxns = days.length > 0 && days.every(d => !d.txns || d.txns.length === 0);
+        // Bulan lazy belum di-load → jangan tulis ke LS (cegah overwrite data penuh)
+        if (noTxns && !_loadedMonths.has(k)) {
+          console.info('[ls] skip bulan lazy (belum di-load):', k);
+          continue;
+        }
+        clean[k] = cleanMonthForPersist(store[k]);
+        for (const d of days) n += (d.txns?.length || 0);
       }
+      if (Object.keys(clean).length === 0) return false;
       if (n > 5000) return false;
       try {
-        // Bersihkan field runtime sebelum stringify
-        const clean = {};
-        for (const k of keys) clean[k] = cleanMonthForPersist(store[k]);
         const json = JSON.stringify(clean);
         if (json.length < 4 * 1024 * 1024) {
           localStorage.setItem(STORAGE_KEY, json);
@@ -3092,7 +1419,29 @@
     }
 
     // ===================== MENU =====================
-    function toggleMenu(e) {
+    
+    function getTheme() {
+      return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+    }
+    function applyTheme(theme) {
+      const t = theme === 'light' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+      try { localStorage.setItem('um_theme', t); } catch (e) {}
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', t === 'light' ? '#e2e8f0' : '#1e293b');
+      const btn = document.getElementById('themeBtn');
+      if (btn) {
+        btn.textContent = t === 'light' ? '🌙' : '☀️';
+        btn.title = t === 'light' ? 'Aktifkan mode gelap' : 'Aktifkan mode terang';
+        btn.setAttribute('aria-label', btn.title);
+      }
+    }
+    function toggleTheme() {
+      applyTheme(getTheme() === 'dark' ? 'light' : 'dark');
+    }
+    document.addEventListener('DOMContentLoaded', () => applyTheme(getTheme()));
+
+function toggleMenu(e) {
       e.stopPropagation();
       document.getElementById('menuDropdown').classList.toggle('show');
     }
@@ -3108,7 +1457,7 @@
     // ===================== TABS =====================
     async function switchTab(name) {
       document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
-      ['dashboard','detail','rincian','minyak','rupa','piutang','dropping','manage'].forEach(t => {
+      ['dashboard','detail','rincian','minyak','rupa','titip','piutang','dropping','manage'].forEach(t => {
         const el = document.getElementById('tab-' + t);
         if (el) el.style.display = t === name ? 'block' : 'none';
       });
@@ -3120,14 +1469,19 @@
         };
         const id = map[name];
         let ym = id ? document.getElementById(id)?.value : '';
-        if (!ym || ym === 'all') ym = getActiveMonthKey();
-        if (ym) await ensureMonthLoaded(ym);
+        if (ym === 'all') {
+          for (const k of monthKeys()) await ensureMonthLoaded(k);
+        } else {
+          if (!ym) ym = getActiveMonthKey();
+          if (ym) await ensureMonthLoaded(ym);
+        }
       }
       if (name === 'dashboard') renderAll();
       else if (name === 'detail') renderDetail();
       else if (name === 'rincian') renderRincianTab();
       else if (name === 'minyak') renderProdukTab('minyak');
       else if (name === 'rupa') renderProdukTab('rupa');
+      else if (name === 'titip') await loadAndRenderTitip();
       else if (name === 'piutang') renderPiutangTab();
       else if (name === 'dropping') renderDroppingTab();
       else if (name === 'manage') renderManage();
@@ -3174,6 +1528,7 @@
       else if (prefix === 'piutang') renderPiutangTab();
       else if (prefix === 'dropping') renderDroppingTab();
       else if (prefix === 'minyak' || prefix === 'rupa') renderProdukTab(prefix);
+      else if (prefix === 'titip') renderTitipTab();
     }
 
     // ===================== DASHBOARD =====================
@@ -3292,9 +1647,15 @@
       const rinMonth = document.getElementById('rincianMonth');
       if (rinMonth) {
         const prevR = rinMonth.value;
-        rinMonth.innerHTML = opts || '<option value="">—</option>';
-        if ([...rinMonth.options].some(o => o.value === prevR)) rinMonth.value = prevR;
-        else if (latest) rinMonth.value = latest;
+        rinMonth.innerHTML = `<option value="all">Semua Bulan</option>` + (opts || '');
+        if (!rinMonth.dataset.inited) {
+          if (latest) rinMonth.value = latest;
+          rinMonth.dataset.inited = '1';
+        } else if (prevR && [...rinMonth.options].some(o => o.value === prevR)) {
+          rinMonth.value = prevR;
+        } else if (latest) {
+          rinMonth.value = latest;
+        }
         populateRincianDates();
       }
 
@@ -3355,11 +1716,24 @@
       const sel = document.getElementById('rincianDate');
       if (!sel) return;
       const prev = sel.value;
-      if (!key || !store[key]) {
+      let days = [];
+      if (key === 'all') {
+        const seen = new Set();
+        for (const k of monthKeys()) {
+          for (const d of (store[k]?.days || [])) {
+            if (d.tgl && !seen.has(d.tgl)) { seen.add(d.tgl); days.push(d); }
+          }
+        }
+        days.sort((a, b) => {
+          const pa = String(a.tgl).split('-'), pb = String(b.tgl).split('-');
+          return (pa[1] + pa[0]).localeCompare(pb[1] + pb[0]);
+        });
+      } else if (key && store[key]) {
+        days = store[key].days || [];
+      } else {
         sel.innerHTML = '<option value="all">Semua Tanggal</option>';
         return;
       }
-      const days = store[key].days || [];
       sel.innerHTML = '<option value="all">Semua Tanggal</option>' +
         days.map(d => `<option value="${esc(d.tgl)}">${esc(d.tgl)}</option>`).join('');
       if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
@@ -3373,7 +1747,8 @@
       const tbody = document.getElementById('detailBody');
       if (!key || !store[key]) { tbody.innerHTML = ''; closeRincian(); return; }
 
-      let days = store[key].days;
+      const allDays = store[key].days || [];
+      let days = allDays;
       if (q) days = days.filter(d => d.tgl.toLowerCase().includes(q));
 
       if (!days.length) {
@@ -3404,12 +1779,16 @@
         </tr>`;
       }).join('');
 
-      const s = sumDays(days);
+      // TOTAL selalu dari seluruh hari bulan (tidak ikut filter pencarian)
+      const s = sumDays(allDays);
       const tm = s.mc + s.mt, tr = s.rc + s.rt;
       const tc = s.mc + s.rc, tf = s.mt + s.rt, g = tm + tr;
+      const totalLabel = (q && days.length !== allDays.length)
+        ? `TOTAL (${allDays.length} hari)`
+        : 'TOTAL';
 
       html += `<tr class="total-row">
-        <td></td><td class="text-left">TOTAL</td>
+        <td></td><td class="text-left">${totalLabel}</td>
         <td>${fmtCell(s.mc)}</td><td>${fmtCell(s.mt)}</td><td>${fmtCell(tm)}</td>
         <td>${fmtCell(s.rc)}</td><td>${fmtCell(s.rt)}</td><td>${fmtCell(tr)}</td>
         <td>${fmtCell(tc)}</td><td>${fmtCell(tf)}</td><td>${fmtCell(g)}</td>
@@ -3529,6 +1908,347 @@
       if (prefix === 'minyak' || prefix === 'rupa') { pagState[prefix].page = 1; renderProdukTab(prefix); }
     }
 
+    // ===================== TAB TITIP =====================
+    async function loadAndRenderTitip() {
+      const sel = document.getElementById('titipMonth');
+      if (!sel) return;
+      const keys = monthKeys();
+      const prev = sel.value;
+      sel.innerHTML = '<option value="all">Semua Bulan</option>' +
+        keys.map(k => `<option value="${esc(k)}">${esc(store[k].label || k)}</option>`).join('');
+      if (prev && [...sel.options].some(o => o.value === prev)) sel.value = prev;
+      else sel.value = 'all';
+
+      const chosen = sel.value;
+      // Semua bulan perlu dimuat agar pembayaran susulan lintas bulan ikut terbaca.
+      for (const k of keys) await ensureMonthLoaded(k);
+      pagState.titip.page = 1;
+      renderTitipTab();
+    }
+
+    function titipNorm(v) {
+      return String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
+    }
+    function titipDateKey(r) {
+      const mk = String(r._monthKey || '');
+      const p = String(r.tgl || '').split('-');
+      if (p.length === 2) return mk + '-' + p[1].padStart(2,'0') + '-' + p[0].padStart(2,'0');
+      return mk + '-00-00';
+    }
+    function titipIdentity(r) {
+      // Identitas utama: toko + alamat + sales. No faktur hanya penguat.
+      return [titipNorm(r.toko), titipNorm(r.alamat), titipNorm(r.sales)].join('|');
+    }
+    function titipPaid(r) {
+      return (Number(r.mCash)||0) + (Number(r.mTf)||0) + (Number(r.rCash)||0) + (Number(r.rTf)||0);
+    }
+
+    function setTitipStatusFilter(status) {
+      const group = document.getElementById('titipStatusGroup');
+      if (!group) return;
+      group.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.val === status);
+      });
+      pagState.titip.page = 1;
+      renderTitipTab();
+    }
+
+    function collectTitipFilteredRows() {
+      // Bangun baris TITIP + alokasi bayar susulan, lalu terapkan filter UI aktif.
+      const sel = document.getElementById('titipMonth');
+      const dateSel = document.getElementById('titipDate');
+      const key = sel?.value || 'all';
+      const section = document.getElementById('titipSection')?.value || 'all';
+      const activeStatusBtn = document.querySelector('#titipStatusGroup .filter-btn.active');
+      const statusFilter = activeStatusBtn?.dataset.val || 'all';
+      const q = (document.getElementById('searchTitip')?.value || '').trim().toLowerCase();
+
+      const keys = monthKeys();
+      const allRows = [];
+      for (const k of keys) {
+        for (const r of getFlatTxns(k)) allRows.push({ ...r, _monthKey:k, _monthLabel:store[k]?.label || k });
+      }
+      const groups = new Map();
+      for (const r of allRows) {
+        const id = titipIdentity(r);
+        if (!id.replace(/\|/g,'')) continue;
+        if (!groups.has(id)) groups.set(id, []);
+        groups.get(id).push(r);
+      }
+      const titipRows = [];
+      for (const groupRows of groups.values()) {
+        const ts = groupRows.filter(r => getKetFlags(r).titip).sort((a,b)=>titipDateKey(a).localeCompare(titipDateKey(b)));
+        const payments = groupRows.filter(r => !getKetFlags(r).titip && titipPaid(r) > 0)
+          .sort((a,b)=>titipDateKey(a).localeCompare(titipDateKey(b)));
+        const used = new Map();
+        for (const t of ts) {
+          const ownPaid = titipPaid(t);
+          let remaining = Math.max(0, (Number(t.tagihan)||0) - ownPaid);
+          let susulan = 0;
+          const tDate = titipDateKey(t);
+          const later = payments.filter(p => titipDateKey(p) > tDate && (used.get(p)||0) < titipPaid(p));
+          later.sort((a,b)=>{
+            const ae = titipNorm(a.faktur) && titipNorm(a.faktur) === titipNorm(t.faktur) ? 0 : 1;
+            const be = titipNorm(b.faktur) && titipNorm(b.faktur) === titipNorm(t.faktur) ? 0 : 1;
+            return ae-be || titipDateKey(a).localeCompare(titipDateKey(b));
+          });
+          for (const pay of later) {
+            if (remaining <= 0) break;
+            const available = Math.max(0, titipPaid(pay) - (used.get(pay)||0));
+            const take = Math.min(remaining, available);
+            if (take > 0) {
+              used.set(pay, (used.get(pay)||0) + take);
+              susulan += take;
+              remaining -= take;
+            }
+          }
+          const totalTagihan = Number(t.tagihan)||0;
+          const paidTotal = Math.min(totalTagihan, ownPaid + susulan);
+          titipRows.push({ ...t, _ownPaid:ownPaid, _susulan:susulan, _paidTotal:paidTotal,
+            _sisa:Math.max(0,totalTagihan-paidTotal),
+            _status:remaining<=0?'LUNAS':(paidTotal>0?'DIBAYAR SEBAGIAN':'BELUM DIBAYAR') });
+        }
+      }
+      let rows = key === 'all' ? titipRows : titipRows.filter(r => r._monthKey === key);
+      // Update date select options from current month set (side-effect for UI)
+      const dates = [...new Set(rows.map(r => r.tgl).filter(Boolean))].sort((a,b) => {
+        const pa=a.split('-'), pb=b.split('-'); return (pa[1]+pa[0]).localeCompare(pb[1]+pb[0]);
+      });
+      const prevDate = dateSel?.value || 'all';
+      if (dateSel) {
+        dateSel.innerHTML = '<option value="all">Semua Tanggal</option>' + dates.map(d => `<option value="${esc(d)}">${esc(d)}</option>`).join('');
+        if ([...dateSel.options].some(o => o.value === prevDate)) dateSel.value = prevDate;
+      }
+      const date = dateSel?.value || 'all';
+      if (date !== 'all') rows = rows.filter(r => r.tgl === date);
+      if (section !== 'all') rows = rows.filter(r => r.section === section);
+      if (statusFilter !== 'all') rows = rows.filter(r => r._status === statusFilter);
+      if (q) rows = rows.filter(r => [r.tgl,r.sales,r.faktur,r.toko,r.alamat,r.ket,r.section,r._monthLabel,r._status].join(' ').toLowerCase().includes(q));
+      rows.sort((a,b) => titipDateKey(a).localeCompare(titipDateKey(b)));
+      return {
+        rows,
+        filters: { key, date, section, statusFilter, q },
+        sum: rows.reduce((a,r) => ({
+          own:a.own+r._ownPaid, sus:a.sus+r._susulan, sisa:a.sisa+r._sisa,
+          tag:a.tag+(Number(r.tagihan)||0), n:a.n+1,
+          lunas:a.lunas+(r._status==='LUNAS'?1:0), belum:a.belum+(r._status==='BELUM DIBAYAR'?1:0),
+          sebagian:a.sebagian+(r._status==='DIBAYAR SEBAGIAN'?1:0)
+        }), {own:0,sus:0,sisa:0,tag:0,n:0,lunas:0,belum:0,sebagian:0})
+      };
+    }
+
+    function renderTitipTab() {
+      const tbody = document.getElementById('titipBody');
+      const summary = document.getElementById('titipSummary');
+      if (!tbody) return;
+      const { rows, sum } = collectTitipFilteredRows();
+      if (summary) summary.innerHTML = `
+        <div class="card cash"><div class="card-label">Jumlah Faktur TITIP</div><div class="card-value">${fmt(sum.n)}</div><div class="card-sub">Data sesuai filter</div></div>
+        <div class="card total"><div class="card-label">Total Tagihan TITIP</div><div class="card-value">Rp ${fmt(sum.tag)}</div><div class="card-sub">Nilai tagihan awal</div></div>
+        <div class="card minyak"><div class="card-label">Pembayaran Susulan</div><div class="card-value">Rp ${fmt(sum.sus)}</div><div class="card-sub">Dikaitkan dari toko, alamat & sales</div></div>
+        <div class="card rupa"><div class="card-label">Sisa TITIP</div><div class="card-value">Rp ${fmt(sum.sisa)}</div><div class="card-sub">Belum tertutup pembayaran</div></div>
+        <div class="card total"><div class="card-label">Status TITIP</div><div class="card-value">${fmt(sum.lunas)} Lunas</div><div class="card-sub">${fmt(sum.sebagian)} Sebagian · ${fmt(sum.belum)} Belum bayar</div></div>`;
+
+      if (!rows.length) {
+        tbody.innerHTML = `<tr><td colspan="18" class="empty-rincian">Tidak ada transaksi TITIP pada filter ini.</td></tr>`;
+        renderPagination('titipPagination','titip',0); return;
+      }
+      const start = (pagState.titip.page - 1) * pagState.titip.size;
+      const pageRows = rows.slice(start, start + pagState.titip.size);
+      tbody.innerHTML = pageRows.map((r,i) => {
+        const mk = r._monthKey || '';
+        const mmYY = /^\d{4}-\d{2}$/.test(mk) ? (mk.slice(5,7) + '/' + mk.slice(2,4)) : esc(r._monthLabel || mk);
+        return `<tr>
+        <td class="center">${start+i+1}</td>
+        <td class="text-left">${mmYY}</td>
+        <td class="text-left">${esc(r.tgl)}</td>
+        <td class="text-left">${ketBadge(getDisplayKet(r))}</td>
+        <td class="text-left">${esc(r.faktur)}</td>
+        <td class="text-left">${esc(r.toko)}</td>
+        <td class="text-left">${esc(r.alamat)}</td>
+        <td>${fmtCell(r.tagihan)}</td>
+        <td>${fmtCell(r._ownPaid)}</td>
+        <td>${fmtCell(r._susulan)}</td>
+        <td>${fmtCell(r._sisa)}</td>
+        <td class="text-left">${esc(r._status)}</td>
+        <td class="text-left">${esc(r.sales)||'—'}</td>
+        <td>${fmtCell(r.mCash)}</td>
+        <td>${fmtCell(r.mTf)}</td>
+        <td>${fmtCell(r.rCash)}</td>
+        <td>${fmtCell(r.rTf)}</td>
+        <td class="text-left">${r.section==='PIUTANG'?'Piutang':r.section==='DROPPING'?'Dropping':'—'}</td>
+      </tr>`;
+      }).join('');
+      renderPagination('titipPagination','titip',rows.length);
+    }
+
+    async function exportTitipExcel() {
+      // Pastikan semua bulan termuat (bayar susulan lintas bulan)
+      for (const k of monthKeys()) await ensureMonthLoaded(k);
+      try { await ensureXLSX(); }
+      catch (e) { toast(e.message || 'Gagal memuat library Excel', 'error'); return; }
+
+      const { rows, filters, sum } = collectTitipFilteredRows();
+      if (!rows.length) {
+        toast('Tidak ada data TITIP pada filter ini untuk diekspor.', 'error');
+        return;
+      }
+
+      const monthText = filters.key === 'all' ? 'Semua Bulan' : (store[filters.key]?.label || filters.key);
+      const dateText = filters.date === 'all' ? 'Semua Tanggal' : filters.date;
+      const sectionText = filters.section === 'all' ? 'Semua Section'
+        : (filters.section === 'PIUTANG' ? 'Piutang Tempo' : 'Cash Dropping');
+      const statusText = filters.statusFilter === 'all' ? 'Semua Status' : filters.statusFilter;
+      const statusFile = filters.statusFilter === 'all' ? 'SemuaStatus'
+        : filters.statusFilter.replace(/\s+/g, '_');
+      const monthFile = filters.key === 'all' ? 'SemuaBulan'
+        : ((store[filters.key]?.label || filters.key).replace(/\s+/g, '_'));
+      const dateFile = filters.date === 'all' ? 'SemuaTgl' : filters.date;
+      const now = new Date();
+      const tglCetak = String(now.getDate()).padStart(2,'0') + '/'
+        + String(now.getMonth()+1).padStart(2,'0') + '/' + now.getFullYear()
+        + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+
+      // ===== Sheet laporan siap cetak =====
+      // Baris judul + info filter + header tabel + data + total
+      const aoa = [];
+      aoa.push(['LAPORAN TITIP — MINYAK & RUPA-RUPA']);
+      aoa.push(['Filter: ' + statusText + '  |  Bulan: ' + monthText + '  |  Tanggal: ' + dateText + '  |  Section: ' + sectionText]);
+      if (filters.q) aoa.push(['Pencarian: ' + filters.q]);
+      aoa.push(['Dicetak: ' + tglCetak + '  |  Jumlah faktur: ' + sum.n
+        + '  |  Tagihan: ' + sum.tag
+        + '  |  Bayar awal: ' + sum.own
+        + '  |  Susulan: ' + sum.sus
+        + '  |  Sisa: ' + sum.sisa
+        + '  |  Lunas: ' + sum.lunas + '  Sebagian: ' + sum.sebagian + '  Belum: ' + sum.belum]);
+      aoa.push([]); // baris kosong pemisah
+
+      const header = [
+        'No', 'Bulan', 'Tgl Titip', 'Ket', 'No Faktur', 'Nama Toko', 'Alamat',
+        'Tagihan', 'Total Bayar Awal', 'Bayar Susulan', 'Sisa TITIP', 'Status',
+        'Sales', 'Minyak Cash', 'Minyak TF', 'Rupa Cash', 'Rupa TF', 'Section'
+      ];
+      aoa.push(header);
+      const headerRow = aoa.length; // 1-based later
+
+      rows.forEach((r, i) => {
+        const mk = r._monthKey || '';
+        const mmYY = /^\d{4}-\d{2}$/.test(mk) ? (mk.slice(5,7) + '/' + mk.slice(2,4)) : (r._monthLabel || mk);
+        aoa.push([
+          i + 1,
+          mmYY,
+          r.tgl || '',
+          getDisplayKet(r) || r.ket || '',
+          r.faktur || '',
+          r.toko || '',
+          r.alamat || '',
+          Number(r.tagihan) || 0,
+          r._ownPaid || 0,
+          r._susulan || 0,
+          r._sisa || 0,
+          r._status || '',
+          r.sales || '',
+          r.mCash || 0,
+          r.mTf || 0,
+          r.rCash || 0,
+          r.rTf || 0,
+          r.section === 'PIUTANG' ? 'Piutang' : (r.section === 'DROPPING' ? 'Dropping' : '')
+        ]);
+      });
+      aoa.push([
+        '', 'TOTAL', '', '', '', '', '',
+        sum.tag, sum.own, sum.sus, sum.sisa, '',
+        '', '', '', '', '', ''
+      ]);
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+      // Merge judul & baris info (18 kolom = A..R)
+      ws['!merges'] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 17 } },
+        { s: { r: 1, c: 0 }, e: { r: 1, c: 17 } },
+      ];
+      let infoRow = 2;
+      if (filters.q) {
+        ws['!merges'].push({ s: { r: 2, c: 0 }, e: { r: 2, c: 17 } });
+        infoRow = 3;
+      }
+      ws['!merges'].push({ s: { r: infoRow, c: 0 }, e: { r: infoRow, c: 17 } });
+
+      // Lebar kolom (mendekati print landscape A4)
+      ws['!cols'] = [
+        { wch: 5 },   // No
+        { wch: 7 },   // Bulan
+        { wch: 9 },   // Tgl
+        { wch: 10 },  // Ket
+        { wch: 16 },  // Faktur
+        { wch: 18 },  // Toko
+        { wch: 16 },  // Alamat
+        { wch: 12 },  // Tagihan
+        { wch: 13 },  // Bayar awal
+        { wch: 12 },  // Susulan
+        { wch: 11 },  // Sisa
+        { wch: 16 },  // Status
+        { wch: 12 },  // Sales
+        { wch: 11 },  // M Cash
+        { wch: 10 },  // M TF
+        { wch: 11 },  // R Cash
+        { wch: 10 },  // R TF
+        { wch: 10 },  // Section
+      ];
+
+      // Tinggi baris judul
+      ws['!rows'] = [{ hpt: 22 }, { hpt: 16 }, { hpt: 16 }];
+
+      // Freeze: baris header tabel tetap terlihat saat scroll
+      const freezeRow = headerRow; // 1-based index of header in aoa is headerRow, freeze after it
+      ws['!freeze'] = { xSplit: 0, ySplit: freezeRow, topLeftCell: 'A' + (freezeRow + 1), activePane: 'bottomLeft', state: 'frozen' };
+
+      // Print setup: landscape A4, fit width
+      ws['!pageSetup'] = {
+        orientation: 'landscape',
+        paperSize: 9, // A4
+        fitToWidth: 1,
+        fitToHeight: 0,
+        horizontalCentered: true
+      };
+      ws['!printHeader'] = 'Laporan TITIP — Minyak & Rupa-rupa';
+      // Margin (inches)
+      ws['!margins'] = { left: 0.3, right: 0.3, top: 0.4, bottom: 0.4, header: 0.2, footer: 0.2 };
+
+      XLSX.utils.book_append_sheet(wb, ws, 'TITIP');
+
+      // Sheet ringkasan singkat (opsional, untuk arsip)
+      const ringkas = [
+        ['LAPORAN TITIP — RINGKASAN FILTER'],
+        [],
+        ['Bulan', monthText],
+        ['Tanggal', dateText],
+        ['Section', sectionText],
+        ['Status', statusText],
+        ['Pencarian', filters.q || '—'],
+        ['Dicetak', tglCetak],
+        [],
+        ['Jumlah Faktur', sum.n],
+        ['Total Tagihan', sum.tag],
+        ['Total Bayar Awal', sum.own],
+        ['Total Bayar Susulan', sum.sus],
+        ['Total Sisa TITIP', sum.sisa],
+        ['Lunas', sum.lunas],
+        ['Dibayar Sebagian', sum.sebagian],
+        ['Belum Dibayar', sum.belum]
+      ];
+      const wsRing = XLSX.utils.aoa_to_sheet(ringkas);
+      wsRing['!cols'] = [{ wch: 22 }, { wch: 28 }];
+      XLSX.utils.book_append_sheet(wb, wsRing, 'Ringkasan');
+
+      const fname = `TITIP_${monthFile}_${statusFile}_${dateFile}.xlsx`;
+      XLSX.writeFile(wb, fname);
+      toast(`Excel TITIP diunduh (${fmt(sum.n)} faktur) — ${statusText}`);
+    }
+
+
     // ===================== RINCIAN TAB =====================
     function renderRincianTab() {
       populateMonthSelectsIfNeeded();        // perbaikan #3
@@ -3541,10 +2261,9 @@
       const ketF = activeKetBtn ? activeKetBtn.dataset.val : 'all';
       const q = (document.getElementById('searchRincian')?.value || '').toLowerCase();
       const tbody = document.getElementById('rincianTabBody');
-      const summary = document.getElementById('rincianSummary');
       if (!tbody) return;
 
-      if (!key || !store[key]) {
+      if (!key || (key !== 'all' && !store[key])) {
         tbody.innerHTML = '';
         if (summary) summary.innerHTML = '';
         renderPagination('rincianPagination', 'rincian', 0);
@@ -3558,7 +2277,14 @@
         rows = _filterCache.rows;
         sum = _filterCache.sum;
       } else {
-        rows = getFlatTxns(key);
+        if (key === 'all') {
+          rows = [];
+          for (const k of monthKeys()) {
+            for (const r of getFlatTxns(k)) rows.push(r);
+          }
+        } else {
+          rows = getFlatTxns(key);
+        }
         if (tglFilter !== 'all') rows = rows.filter(r => r.tgl === tglFilter);
         if (sectionF !== 'all') rows = rows.filter(r => r.section === sectionF);
         rows = applyKetFilter(rows, ketF);
@@ -3576,25 +2302,14 @@
         }), {mc:0,mt:0,rc:0,rt:0,tag:0,n:0});
         _filterCache = { key: sig, rows, sum };
       }
-      const totalM = sum.mc+sum.mt, totalR = sum.rc+sum.rt;
-
-      if (summary) {
-        summary.innerHTML = `
-          <div class="card minyak"><div class="card-label">Minyak</div><div class="card-value">Rp ${fmt(totalM)}</div>
-            <div class="card-sub">Cash ${fmt(sum.mc)} · TF ${fmt(sum.mt)}</div></div>
-          <div class="card rupa"><div class="card-label">Rupa-rupa</div><div class="card-value">Rp ${fmt(totalR)}</div>
-            <div class="card-sub">Cash ${fmt(sum.rc)} · TF ${fmt(sum.rt)}</div></div>
-          <div class="card cash"><div class="card-label">Jumlah Faktur</div><div class="card-value">${sum.n}</div>
-            <div class="card-sub">Tagihan Rp ${fmt(sum.tag)}</div></div>
-          <div class="card total"><div class="card-label">Grand Total Bayar</div><div class="card-value">Rp ${fmt(totalM+totalR)}</div>
-            <div class="card-sub">Minyak + Rupa</div></div>`;
-      }
-
       if (!rows.length) {
+        const hasTxns = key === 'all'
+          ? monthKeys().some(k => (store[k]?.days||[]).some(d => d.txns && d.txns.length))
+          : !!(store[key] && (store[key].days||[]).some(d => d.txns && d.txns.length));
         tbody.innerHTML = `<tr><td colspan="13" class="empty-rincian">
           Tidak ada data rincian.<br/>
-          ${!(store[key].days||[]).some(d=>d.txns&&d.txns.length)
-            ? 'Upload ulang file Excel bulan ini agar rincian faktur terbaca.'
+          ${!hasTxns
+            ? 'Upload ulang file Excel agar rincian faktur terbaca.'
             : 'Coba ubah filter tanggal / section / status.'}
         </td></tr>`;
         renderPagination('rincianPagination', 'rincian', 0);
@@ -3854,6 +2569,7 @@
       else if (active === 'rincian') renderRincianTab();
       else if (active === 'minyak') renderProdukTab('minyak');
       else if (active === 'rupa') renderProdukTab('rupa');
+      else if (active === 'titip') loadAndRenderTitip();
       else if (active === 'piutang') renderPiutangTab();
       else if (active === 'dropping') renderDroppingTab();
       else if (active === 'manage') renderManage();
@@ -3887,10 +2603,42 @@
       if (pct >= 100) setTimeout(() => { bar.classList.remove('show'); fill.style.width = '0%'; }, 600);
     }
 
+    // Lazy-load SheetJS hanya saat upload/export (hemat first-paint ~900 KB)
+    let _xlsxLoading = null;
+    async function ensureXLSX() {
+      if (window.XLSX) return window.XLSX;
+      // Kalau ada promise yang sedang berjalan, ikut itu
+      if (_xlsxLoading) {
+        try { return await _xlsxLoading; }
+        catch (e) { _xlsxLoading = null; throw e; }   // ← boleh retry
+      }
+      _xlsxLoading = new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+        s.onload = () => resolve(window.XLSX);
+        s.onerror = () => {
+          const s2 = document.createElement('script');
+          s2.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+          s2.onload = () => resolve(window.XLSX);
+          s2.onerror = () => reject(new Error('Gagal memuat library Excel (XLSX). Periksa koneksi internet lalu coba lagi.'));
+          document.head.appendChild(s2);
+        };
+        document.head.appendChild(s);
+      });
+      try {
+        return await _xlsxLoading;
+      } catch (e) {
+        _xlsxLoading = null;    // ← reset agar klik berikutnya retry
+        throw e;
+      }
+    }
+
     // Perbaikan #6: yield per sheet — perbaikan #1: saveMonthAsync
     async function processFile(file) {
-      showProgress(10);
+      showProgress(5);
       try {
+        await ensureXLSX();
+        showProgress(10);
         const buf = await file.arrayBuffer();
         showProgress(30);
         const wb = XLSX.read(buf, { type: 'array', cellDates: false });
@@ -3941,6 +2689,11 @@
         } catch (saveErr) {
           if (prev) store[yearMonth] = prev;
           else delete store[yearMonth];
+          // Rollback _loadedMonths: jangan anggap "loaded" jika hasil restore
+          // masih metadata kosong (lazy) — cegah overwrite data lama di IDB
+          if (!store[yearMonth] || !monthHasTxns(store[yearMonth])) {
+            _loadedMonths.delete(yearMonth);
+          }
           markStoreDirty();
           showProgress(100);
           toast(saveErr.message || 'Gagal menyimpan data.', 'error');
@@ -3948,11 +2701,11 @@
         }
 
         showProgress(100);
-        toast(`Berhasil import ${days.length} hari — ${label}`);
-
         if (warnings.length) {
           console.warn('[parse] selisih total sheet vs faktur:', warnings);
-          setTimeout(() => toast(`Perhatian: ${warnings.length} hari punya selisih total sheet vs jumlah faktur. Lihat console untuk detail.`, 'error'), 500);
+          toast(`Berhasil import ${days.length} hari — ${label}. Perhatian: ${warnings.length} hari punya selisih total sheet vs jumlah faktur (lihat console).`, 'error');
+        } else {
+          toast(`Berhasil import ${days.length} hari — ${label}`);
         }
 
         const fm = document.getElementById('filterMonth');
@@ -4216,9 +2969,27 @@
             const v = cell.v;
             if (typeof v === 'string') {
               const m1 = v.match(/(\d{1,2})\/(\d{1,2})\/(20\d{2})/);
-              if (m1) return `${m1[3]}-${m1[2].padStart(2,'0')}`;
+              if (m1) {
+                const a = parseInt(m1[1], 10);
+                const b = parseInt(m1[2], 10);
+                const y = m1[3];
+                // Validasi bulan 1–12. Prefer format ID (D/M/YYYY).
+                // Jika b > 12 → pasti format US (M/D): a=bulan, b=hari.
+                // Jika a > 12 → pasti format ID (D/M): a=hari, b=bulan.
+                // Jika keduanya ≤ 12 → prefer D/M (lokal Indonesia).
+                let mm;
+                if (b > 12 && a >= 1 && a <= 12) mm = a;       // M/D (b = day)
+                else if (a > 12 && b >= 1 && b <= 12) mm = b;  // D/M (a = day)
+                else if (b >= 1 && b <= 12) mm = b;            // prefer D/M
+                else if (a >= 1 && a <= 12) mm = a;            // fallback M/D
+                else continue; // tidak valid
+                return `${y}-${String(mm).padStart(2, '0')}`;
+              }
               const m2 = v.match(/(20\d{2})-(\d{2})/);
-              if (m2) return `${m2[1]}-${m2[2]}`;
+              if (m2) {
+                const mm = parseInt(m2[2], 10);
+                if (mm >= 1 && mm <= 12) return `${m2[1]}-${m2[2]}`;
+              }
             }
           }
         }
@@ -4322,7 +3093,7 @@
               <div class="card-sub">Cash ${fmt(sum.mc)} · TF ${fmt(sum.mt)}</div></div>
             <div class="card cash"><div class="card-label">Jumlah Faktur</div><div class="card-value">${sum.n}</div>
               <div class="card-sub">Tagihan Rp ${fmt(sum.tag)}</div></div>
-            <div class="card total"><div class="card-label">Minyak Cash</div><div class="card-value">Rp ${fmt(sum.mc)}</div>
+            <div class="card minyak"><div class="card-label">Minyak Cash</div><div class="card-value">Rp ${fmt(sum.mc)}</div>
               <div class="card-sub">Tunai</div></div>
             <div class="card total"><div class="card-label">Minyak TF/BG</div><div class="card-value">Rp ${fmt(sum.mt)}</div>
               <div class="card-sub">Transfer / BG</div></div>`;
@@ -4333,7 +3104,7 @@
               <div class="card-sub">Cash ${fmt(sum.rc)} · TF ${fmt(sum.rt)}</div></div>
             <div class="card cash"><div class="card-label">Jumlah Faktur</div><div class="card-value">${sum.n}</div>
               <div class="card-sub">Tagihan Rp ${fmt(sum.tag)}</div></div>
-            <div class="card total"><div class="card-label">Rupa Cash</div><div class="card-value">Rp ${fmt(sum.rc)}</div>
+            <div class="card rupa"><div class="card-label">Rupa Cash</div><div class="card-value">Rp ${fmt(sum.rc)}</div>
               <div class="card-sub">Tunai</div></div>
             <div class="card total"><div class="card-label">Rupa TF/BG</div><div class="card-value">Rp ${fmt(sum.rt)}</div>
               <div class="card-sub">Transfer / BG</div></div>`;
@@ -4420,6 +3191,7 @@
         rincian: 'rincianMonth',
         minyak: 'minyakMonth',
         rupa: 'rupaMonth',
+        titip: 'titipMonth',
         piutang: 'piutangMonth',
         dropping: 'droppingMonth',
         manage: 'filterMonth'
@@ -4435,6 +3207,12 @@
     }
 
     async function exportExcelByFilter() {
+      const activeTab = document.querySelector('.tab.active')?.dataset.tab || 'dashboard';
+      // Tab TITIP: ekspor sesuai filter UI (bulan/tgl/section/status/cari)
+      if (activeTab === 'titip') {
+        await exportTitipExcel();
+        return;
+      }
       const key = getActiveMonthKey();
       if (!key || !store[key]) {
         toast('Tidak ada data bulan untuk diekspor. Pilih bulan terlebih dahulu.', 'error');
@@ -4448,6 +3226,12 @@
           toast('Gagal memuat data bulan ini dari storage. Coba reload halaman.', 'error');
           return;
         }
+      }
+      try {
+        await ensureXLSX();
+      } catch (e) {
+        toast(e.message || 'Gagal memuat library Excel', 'error');
+        return;
       }
       const m = store[key];
       const label = m.label || key;
@@ -4690,6 +3474,7 @@
 
     document.getElementById('searchDetail').addEventListener('input', debouncedDetailSearch);
     document.getElementById('searchRincian').addEventListener('input', debouncedRincianSearch);
+    document.getElementById('searchTitip')?.addEventListener('input', debounce(() => { pagState.titip.page=1; renderTitipTab(); }, 250));
     document.getElementById('searchPiutang').addEventListener('input', debouncedPiutangSearch);
     document.getElementById('searchDropping').addEventListener('input', debouncedDroppingSearch);
     const debouncedMinyakSearch = debounce(() => { pagState.minyak.page = 1; renderProdukTab('minyak'); }, 250);
@@ -4705,7 +3490,6 @@
         console.error('[init] load failed:', e);
         store = {};
       }
-      _ready = true;
       // Tandai bulan yang sudah punya txns di RAM (mis. dari LS fallback)
       for (const k of Object.keys(store)) {
         if (monthHasTxns(store[k])) _loadedMonths.add(k);
